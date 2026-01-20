@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AuthenticationServices
+import CryptoKit
 
 struct LoginView: View {
     // MARK: - Properties
