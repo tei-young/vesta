@@ -1,12 +1,12 @@
 # TODO - Vesta iOS 개발 계획
 
-> 최종 업데이트: 2026-01-20
+> 최종 업데이트: 2026-01-21
 
 ## 우선순위별 개발 계획
 
 ---
 
-## 🔴 Priority 1: 환경 구축 및 Firebase 연동 (진행 중)
+## 🔴 Priority 1: 환경 구축 및 Firebase 연동 ✅ 완료
 
 ### ✅ 완료
 - [x] 1.1 iOS 프로젝트 구조 생성 (21개 Swift 파일)
@@ -15,38 +15,32 @@
 - [x] 1.4 Bundle Identifier 설정
 - [x] 1.5 iOS 17.0 Minimum Deployment 설정
 - [x] 1.6 Firebase SDK 추가 (FirebaseAuth, FirebaseFirestore)
+- [x] 1.7 Sign In with Apple Capability 추가 (Entitlements 파일 생성)
+- [x] 1.8 Firebase Console 프로젝트 생성
+- [x] 1.9 GoogleService-Info.plist 추가
+- [x] 1.10 Firebase Authentication 설정 (Apple + Google 활성화)
+- [x] 1.11 Cloud Firestore 생성 (Production 모드, asia-northeast3)
+- [x] 1.12 Firestore Security Rules 설정
+- [x] 1.13 첫 빌드 및 테스트 (Apple Sign In)
+- [x] 1.14 빌드 에러 해결 (Info.plist, Firebase SDK, Combine, CryptoKit)
+
+---
+
+## 🟠 Priority 1.5: Google Sign In 추가 ✅ 완료
+
+### ✅ 완료
+- [x] 1.5.1 Firebase Console에서 Google 인증 활성화
+- [x] 1.5.2 GoogleSignIn SDK 추가 (SPM)
+- [x] 1.5.3 GoogleService-Info.plist 재다운로드 (CLIENT_ID 포함)
+- [x] 1.5.4 Info.plist URL Schemes 설정 (REVERSED_CLIENT_ID)
+- [x] 1.5.5 VestaApp.swift에 `.onOpenURL` 핸들러 추가
+- [x] 1.5.6 AuthService.swift에 `signInWithGoogle()` 메서드 구현
+- [x] 1.5.7 LoginView.swift에 Google Sign In 버튼 추가
 
 ### 🟡 진행 중
-- [ ] **1.7 Sign In with Apple Capability 추가**
-  - Xcode → Signing & Capabilities → + Capability
-  - "Sign In with Apple" 추가
-
-### ⬜ 대기
-- [ ] **1.8 Firebase Console 프로젝트 생성**
-  - 새 Firebase 프로젝트 생성
-  - iOS 앱 추가 (Bundle ID 입력)
-  - GoogleService-Info.plist 다운로드
-
-- [ ] **1.9 GoogleService-Info.plist 추가**
-  - Xcode에서 `Vesta/Resources/` 폴더에 추가
-  - Target에 추가 확인
-
-- [ ] **1.10 Firebase Authentication 설정**
-  - Firebase Console → Authentication
-  - Sign-in method → Apple 활성화
-
-- [ ] **1.11 Cloud Firestore 생성**
-  - Firebase Console → Firestore Database
-  - 테스트 모드로 시작
-  - 리전: asia-northeast3 (서울)
-
-- [ ] **1.12 Firestore Security Rules 설정**
-  - 사용자별 데이터 격리 규칙 적용
-  - 인증된 사용자만 본인 데이터 접근 가능
-
-- [ ] **1.13 첫 빌드 및 테스트**
-  - 시뮬레이터에서 빌드 확인
-  - Apple Sign In 테스트 (로그인/로그아웃)
+- [ ] **1.5.8 Google Sign In 테스트**
+  - 시뮬레이터 또는 실제 기기에서 테스트
+  - 로그인/로그아웃 확인
 
 ---
 

@@ -381,14 +381,315 @@ func signOut() throws
 
 ---
 
+---
+
+## 2026-01-21
+
+### ✅ Phase 1 완료: Firebase 연동 및 첫 빌드
+
+#### 11. Sign In with Apple Capability 추가
+
+**문제:** Xcode GUI에서 Sign In with Apple capability가 보이지 않음
+
+**해결:**
+- `Vesta.entitlements` 파일 수동 생성
+- Build Settings에서 Code Signing Entitlements 경로 설정
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+</dict>
+</plist>
+```
+
+---
+
+#### 12. Firebase Console 설정
+
+**프로젝트 정보:**
+- 프로젝트 ID: `vesta-cbba0`
+- 리전: asia-northeast3 (서울)
+
+**Firebase 서비스 설정:**
+
+1. **Authentication**
+   - Apple Sign In 활성화 ✅
+   - Google Sign In 활성화 ✅
+
+2. **Cloud Firestore**
+   - **Production 모드**로 시작
+   - Security Rules 적용:
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+3. **GoogleService-Info.plist**
+   - CLIENT_ID 포함 버전으로 재다운로드
+   - `Vesta/Resources/` 폴더에 추가
+
+---
+
+#### 13. 빌드 에러 해결 과정
+
+**Error #1: Info.plist 충돌**
+```
+Multiple commands produce '/Users/.../Vesta.app/Info.plist'
+```
+**원인:** Copy Bundle Resources에 Info.plist 중복
+**해결:** 불필요한 Package.swift 파일 제거
+
+---
+
+**Error #2: Firebase 모듈 not found**
+```
+Unable to find module dependency: 'FirebaseAuth'
+Unable to find module dependency: 'FirebaseFirestore'
+```
+**원인:** Firebase SDK가 PROJECT 레벨에만 추가되고 TARGET에 링크 안됨
+**해결:**
+- Xcode → TARGETS → Vesta → Frameworks, Libraries, and Embedded Content
+- FirebaseAuth, FirebaseFirestore 수동 추가
+
+---
+
+**Error #3: ObservableObject conformance 에러**
+```
+Type 'AuthService' does not conform to protocol 'ObservableObject'
+```
+**원인:** `import Combine` 누락
+**해결:** AuthService.swift 상단에 추가
+```swift
+import Foundation
+import Combine          // 추가
+import FirebaseAuth
+import AuthenticationServices
+import CryptoKit
+```
+
+---
+
+**Error #4: SHA256 not found**
+```
+Cannot find 'SHA256' in scope
+```
+**원인:** `import CryptoKit` 누락
+**해결:** LoginView.swift 상단에 추가
+```swift
+import SwiftUI
+import AuthenticationServices
+import CryptoKit        // 추가
+```
+
+---
+
+#### 14. 첫 빌드 성공 ✅
+
+**결과:**
+- 빌드 성공
+- 로그인 화면 표시 확인
+- Apple Sign In 버튼 작동
+
+---
+
+### ✅ Phase 1.5: Google Sign In 추가
+
+#### 15. Google Sign In SDK 추가
+
+**방법:** Swift Package Manager (SPM)
+
+1. Xcode → File → Add Package Dependencies
+2. URL: `https://github.com/google/GoogleSignIn-iOS`
+3. Version: Up to Next Major (7.0.0)
+4. Target: Vesta
+
+**추가된 패키지:**
+- GoogleSignIn
+- GoogleSignInSwift
+
+---
+
+#### 16. URL Schemes 설정
+
+**Info.plist 수정:**
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>com.googleusercontent.apps.695726341855-uopcjetojsfedvji4nndsoglrm6nh09i</string>
+        </array>
+    </dict>
+</array>
+```
+
+**참고:** REVERSED_CLIENT_ID를 GoogleService-Info.plist에서 가져옴
+
+---
+
+#### 17. VestaApp.swift 수정
+
+**변경 사항:**
+
+1. GoogleSignIn import 추가
+2. URL 핸들링 추가
+
+```swift
+import SwiftUI
+import FirebaseCore
+import GoogleSignIn     // 추가
+
+@main
+struct VestaApp: App {
+    @StateObject private var authService = AuthService()
+
+    init() {
+        FirebaseApp.configure()
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(authService)
+                .onOpenURL { url in                    // 추가
+                    GIDSignIn.sharedInstance.handle(url)
+                }
+        }
+    }
+}
+```
+
+---
+
+#### 18. AuthService.swift에 Google 로그인 구현
+
+**추가된 메서드:**
+
+```swift
+import GoogleSignIn  // 추가
+
+/// Google Sign In 처리
+func signInWithGoogle() async throws {
+    guard let clientID = FirebaseApp.app()?.options.clientID else {
+        throw AuthError.invalidToken
+    }
+
+    let config = GIDConfiguration(clientID: clientID)
+    GIDSignIn.sharedInstance.configuration = config
+
+    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+          let rootViewController = windowScene.windows.first?.rootViewController else {
+        throw AuthError.signInFailed("Unable to get root view controller")
+    }
+
+    do {
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+        let user = result.user
+
+        guard let idToken = user.idToken?.tokenString else {
+            throw AuthError.invalidToken
+        }
+
+        let credential = GoogleAuthProvider.credential(
+            withIDToken: idToken,
+            accessToken: user.accessToken.tokenString
+        )
+
+        let authResult = try await Auth.auth().signIn(with: credential)
+        print("✅ Google Sign In 성공: \(authResult.user.uid)")
+    } catch {
+        print("❌ Google Sign In 실패: \(error.localizedDescription)")
+        throw AuthError.signInFailed(error.localizedDescription)
+    }
+}
+```
+
+**signOut() 메서드 업데이트:**
+
+```swift
+func signOut() throws {
+    do {
+        try Auth.auth().signOut()
+        GIDSignIn.sharedInstance.signOut()  // Google 로그아웃 추가
+        print("✅ 로그아웃 성공")
+    } catch {
+        print("❌ 로그아웃 실패: \(error.localizedDescription)")
+        throw AuthError.signOutFailed(error.localizedDescription)
+    }
+}
+```
+
+---
+
+#### 19. LoginView.swift에 Google Sign In 버튼 추가
+
+**UI 변경:**
+
+```swift
+// Google Sign In 버튼
+Button(action: {
+    handleGoogleSignIn()
+}) {
+    HStack {
+        Image(systemName: "g.circle.fill")
+            .font(.title2)
+        Text("Google로 계속하기")
+            .font(.headline)
+    }
+    .frame(maxWidth: .infinity)
+    .frame(height: 50)
+    .foregroundColor(.white)
+    .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+    .cornerRadius(12)
+}
+
+// Apple Sign In 버튼 (기존)
+SignInWithAppleButton(...)
+```
+
+**핸들러 메서드 추가:**
+
+```swift
+private func handleGoogleSignIn() {
+    isLoading = true
+    errorMessage = nil
+
+    Task {
+        do {
+            try await authService.signInWithGoogle()
+            isLoading = false
+        } catch {
+            isLoading = false
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+```
+
+---
+
 ## 다음 단계
 
 ### 즉시 진행:
-1. ✅ Sign In with Apple Capability 추가
-2. Firebase Console 프로젝트 생성
-3. GoogleService-Info.plist 추가
-4. Firebase Authentication & Firestore 설정
-5. 첫 빌드 및 Apple Sign In 테스트
+1. ✅ Google Sign In 테스트 (대기 중)
+   - 시뮬레이터 또는 실제 기기에서 테스트
+   - Firebase Console에서 인증된 사용자 확인
 
 ### 이후 계획:
 - Phase 2: 서비스 레이어 구현 (6개 Service 파일)
