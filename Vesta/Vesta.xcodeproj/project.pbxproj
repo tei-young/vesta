@@ -8,15 +8,32 @@
 
 /* Begin PBXBuildFile section */
 		CA2D85212F1E877C00C7048F /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = CA2D85202F1E877C00C7048F /* FirebaseAnalytics */; };
+		CA2D85792F1FC17E00C7048F /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CA2D85782F1FC17E00C7048F /* FirebaseAuth */; };
+		CA2D857B2F1FC18C00C7048F /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = CA2D857A2F1FC18C00C7048F /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		CA2D84812F1E83CC00C7048F /* Vesta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vesta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CA2D85762F1FBED100C7048F /* Exceptions for "Vesta" folder in "Vesta" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				.swiftpm/xcode/package.xcworkspace,
+				Info.plist,
+				README.md,
+			);
+			target = CA2D84802F1E83CC00C7048F /* Vesta */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CA2D84832F1E83CC00C7048F /* Vesta */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CA2D85762F1FBED100C7048F /* Exceptions for "Vesta" folder in "Vesta" target */,
+			);
 			path = Vesta;
 			sourceTree = "<group>";
 		};
@@ -28,6 +45,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA2D85212F1E877C00C7048F /* FirebaseAnalytics in Frameworks */,
+				CA2D85792F1FC17E00C7048F /* FirebaseAuth in Frameworks */,
+				CA2D857B2F1FC18C00C7048F /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				CA2D84832F1E83CC00C7048F /* Vesta */,
+				CA2D85772F1FC17E00C7048F /* Frameworks */,
 				CA2D84822F1E83CC00C7048F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +68,13 @@
 				CA2D84812F1E83CC00C7048F /* Vesta.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CA2D85772F1FC17E00C7048F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -71,6 +98,8 @@
 			name = Vesta;
 			packageProductDependencies = (
 				CA2D85202F1E877C00C7048F /* FirebaseAnalytics */,
+				CA2D85782F1FC17E00C7048F /* FirebaseAuth */,
+				CA2D857A2F1FC18C00C7048F /* FirebaseFirestore */,
 			);
 			productName = Vesta;
 			productReference = CA2D84812F1E83CC00C7048F /* Vesta.app */;
@@ -255,6 +284,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Vesta/Vesta.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6F5Q5W46WA;
@@ -300,6 +330,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Vesta/Vesta.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 6F5Q5W46WA;
@@ -379,6 +410,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA2D851F2F1E877C00C7048F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		CA2D85782F1FC17E00C7048F /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA2D851F2F1E877C00C7048F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		CA2D857A2F1FC18C00C7048F /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA2D851F2F1E877C00C7048F /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
