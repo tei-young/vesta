@@ -55,5 +55,16 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.695726341855-uopcjetojsfedvji4nndsoglrm6nh09i</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

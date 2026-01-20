@@ -10,6 +10,7 @@ import Combine
 import FirebaseAuth
 import AuthenticationServices
 import CryptoKit
+import GoogleSignIn
 
 @MainActor
 class AuthService: ObservableObject {
@@ -92,11 +93,49 @@ class AuthService: ObservableObject {
         }
     }
 
+    // MARK: - Google Sign In
+
+    /// Google Sign In 처리
+    func signInWithGoogle() async throws {
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            throw AuthError.invalidToken
+        }
+
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            throw AuthError.signInFailed("Unable to get root view controller")
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            let user = result.user
+
+            guard let idToken = user.idToken?.tokenString else {
+                throw AuthError.invalidToken
+            }
+
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: user.accessToken.tokenString
+            )
+
+            let authResult = try await Auth.auth().signIn(with: credential)
+            print("✅ Google Sign In 성공: \(authResult.user.uid)")
+        } catch {
+            print("❌ Google Sign In 실패: \(error.localizedDescription)")
+            throw AuthError.signInFailed(error.localizedDescription)
+        }
+    }
+
     // MARK: - Sign Out
 
     func signOut() throws {
         do {
             try Auth.auth().signOut()
+            GIDSignIn.sharedInstance.signOut()
             print("✅ 로그아웃 성공")
         } catch {
             print("❌ 로그아웃 실패: \(error.localizedDescription)")

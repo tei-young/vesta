@@ -43,8 +43,26 @@ struct LoginView: View {
 
                 Spacer()
 
-                // Apple Sign In 버튼
+                // 로그인 버튼들
                 VStack(spacing: AppConstants.Spacing.m) {
+                    // Google Sign In 버튼
+                    Button(action: {
+                        handleGoogleSignIn()
+                    }) {
+                        HStack {
+                            Image(systemName: "g.circle.fill")
+                                .font(.title2)
+                            Text("Google로 계속하기")
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .foregroundColor(.white)
+                        .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                        .cornerRadius(12)
+                    }
+
+                    // Apple Sign In 버튼
                     SignInWithAppleButton(
                         .signIn,
                         onRequest: { request in
@@ -87,6 +105,21 @@ struct LoginView: View {
     }
 
     // MARK: - Methods
+
+    private func handleGoogleSignIn() {
+        isLoading = true
+        errorMessage = nil
+
+        Task {
+            do {
+                try await authService.signInWithGoogle()
+                isLoading = false
+            } catch {
+                isLoading = false
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
 
     private func handleSignInWithApple(result: Result<ASAuthorization, Error>) {
         switch result {
