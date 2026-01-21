@@ -7,7 +7,6 @@
 
 import Foundation
 import Combine
-import FirebaseCore
 import FirebaseAuth
 import AuthenticationServices
 import CryptoKit
@@ -98,7 +97,7 @@ class AuthService: ObservableObject {
 
     /// Google Sign In 처리
     func signInWithGoogle() async throws {
-        guard let clientID = FirebaseApp.app()?.options.clientID else {
+        guard let clientID = Auth.auth().app?.options.clientID else {
             throw AuthError.invalidToken
         }
 
