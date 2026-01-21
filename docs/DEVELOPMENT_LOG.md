@@ -847,12 +847,133 @@ func groupExpensesByCategory() -> [String: MonthlyExpense]
 
 ---
 
+### ✅ Phase 5 완료: 설정 탭 구현
+
+#### 27. Date Extension 수정
+
+**문제:** 빌드 에러 발생 (8개)
+- Combine import 누락
+- `Date.endOfDay()` 메서드 없음
+
+**해결:**
+- Date+Formatting.swift에 `endOfDay()` 메서드 추가 (75-80번 라인)
+- 모든 서비스 파일에 `import Combine` 추가
+
+---
+
+#### 28. SettingsViewModel.swift 구현 (131줄)
+
+**구현 내용:**
+- 시술 관리 ViewModel (@MainActor, ObservableObject)
+- TreatmentService와 연동하여 상태 관리
+
+**주요 기능:**
+```swift
+func fetchTreatments() async
+func addTreatment(name:price:icon:color:) async
+func updateTreatment(_:) async
+func deleteTreatment(_:) async
+func showAddSheet()
+func showEditSheet(for:)
+func signOut()
+```
+
+**특징:**
+- Combine을 사용한 TreatmentService 상태 구독
+- @Published로 실시간 UI 업데이트
+- 에러 메시지 처리
+
+---
+
+#### 29. ColorPickerView.swift 구현 (63줄)
+
+**구현 내용:**
+- 15색 팔레트 그리드 UI
+- TreatmentColors 15가지 색상 표시
+
+**주요 기능:**
+- LazyVGrid 레이아웃
+- 선택된 색상 하이라이트 (테두리)
+- 50x50 원형 버튼
+
+---
+
+#### 30. EmojiTextField.swift 구현 (53줄)
+
+**구현 내용:**
+- 이모지 입력 전용 TextField
+- 2글자 제한
+
+**주요 기능:**
+- 80x80 크기의 큰 입력 필드
+- onChange로 2글자 제한 구현
+- X 버튼으로 초기화
+- 센터 정렬
+
+---
+
+#### 31. TreatmentRow.swift 구현 (88줄)
+
+**구현 내용:**
+- 시술 목록 행 UI
+
+**UI 구성:**
+- 색상 원형 (50x50) + 아이콘 (이모지)
+- 시술명 (headline)
+- 가격 (subheadline, formattedCurrency)
+- 수정 버튼 (pencil 아이콘)
+- 삭제 버튼 (trash 아이콘)
+
+---
+
+#### 32. TreatmentEditSheet.swift 구현 (154줄)
+
+**구현 내용:**
+- 시술 추가/수정 바텀 시트 (NavigationView + Form)
+
+**UI 구성:**
+- 시술명 입력 (TextField)
+- 가격 입력 (numberPad 키보드, 숫자만 입력)
+- 가격 미리보기 (formattedCurrency)
+- 아이콘 선택 (EmojiTextField)
+- 색상 선택 (ColorPickerView)
+
+**기능:**
+- 추가/수정 모드 자동 전환
+- 유효성 검사 (이름, 가격 필수)
+- 취소/저장 버튼
+
+---
+
+#### 33. SettingsTabView.swift 업데이트 (136줄)
+
+**구현 내용:**
+- 시술 목록 표시 (List + Section)
+- 시술 추가/수정/삭제 기능
+- 앱 정보 섹션
+
+**UI 구성:**
+- 시술 관리 섹션
+  - 시술 목록 (ForEach + TreatmentRow)
+  - 빈 상태 메시지
+  - + 버튼 (toolbar)
+- 앱 정보 섹션
+  - 앱 버전 표시
+  - 로그아웃 버튼
+
+**기능:**
+- sheet로 TreatmentEditSheet 표시
+- alert로 삭제 확인
+- .task로 데이터 로딩
+- .overlay로 로딩 인디케이터
+
+---
+
 ## 다음 단계
 
 ### 이후 계획:
 - Phase 3: 캘린더 탭 완성
 - Phase 4: 결산 탭 완성
-- Phase 5: 설정 탭 완성
 
 ---
 
@@ -921,9 +1042,9 @@ users/{userId}/monthlyExpenses/...
 
 ## 코드 통계
 
-### Phase 2 완료 후
-- **Swift 파일**: 27개 (+6개)
-- **총 코드 라인**: 약 3,174줄 (+1,674줄)
+### Phase 5 완료 후
+- **Swift 파일**: 33개 (+6개)
+- **총 코드 라인**: 약 3,805줄 (+631줄)
 - **모델**: 6개
 - **서비스**: 7개 (AuthService + 6개 비즈니스 레이어)
   - AuthService (198줄)
@@ -933,6 +1054,14 @@ users/{userId}/monthlyExpenses/...
   - AdjustmentService (265줄)
   - CategoryService (280줄)
   - ExpenseService (284줄)
-- **뷰**: 8개
-- **Extensions**: 4개
+- **ViewModel**: 1개
+  - SettingsViewModel (131줄)
+- **뷰**: 13개 (+5개)
+  - 기존 8개 (LoginView, CalendarTabView, SettlementTabView, SettingsTabView 등)
+  - TreatmentRow (88줄)
+  - TreatmentEditSheet (154줄)
+- **공용 컴포넌트**: 2개
+  - ColorPickerView (63줄)
+  - EmojiTextField (53줄)
+- **Extensions**: 4개 (Date+Formatting에 endOfDay() 추가)
 - **Constants**: 3개

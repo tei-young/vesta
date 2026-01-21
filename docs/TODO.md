@@ -199,46 +199,53 @@
 
 ---
 
-## 🔵 Priority 5: 설정 탭 구현
+## 🔵 Priority 5: 설정 탭 구현 ✅ 완료
 
-### 시술 관리 UI
-- [ ] **5.1 SettingsViewModel.swift 생성**
+### ✅ 완료
+- [x] **5.1 SettingsViewModel.swift 생성** (131줄)
   - 시술 목록 관리
   - TreatmentService 연동
+  - Combine으로 상태 구독
+  - 추가/수정/삭제/로그아웃 기능
 
-- [ ] **5.2 TreatmentListView.swift 구현**
-  - 시술 목록 UI
-  - 드래그 앤 드롭 순서 변경 (선택)
-
-- [ ] **5.3 TreatmentRow.swift 구현**
+- [x] **5.2 TreatmentRow.swift 구현** (88줄)
   - 시술 행 UI
-  - 색상, 아이콘, 이름, 가격 표시
+  - 색상 원형, 아이콘, 이름, 가격 표시
   - 수정/삭제 버튼
 
-- [ ] **5.4 TreatmentEditSheet.swift 구현**
+- [x] **5.3 TreatmentEditSheet.swift 구현** (154줄)
   - 시술 추가/수정 바텀 시트
   - 시술명, 가격 입력
   - 아이콘 선택 (이모지)
   - 색상 선택 (15가지 팔레트)
+  - 유효성 검사
 
-### 공용 컴포넌트
-- [ ] **5.5 ColorPickerView.swift 구현**
+- [x] **5.4 ColorPickerView.swift 구현** (63줄)
   - 15가지 색상 팔레트 그리드
   - 선택된 색상 하이라이트
+  - LazyVGrid 레이아웃
 
-- [ ] **5.6 EmojiTextField.swift 구현**
+- [x] **5.5 EmojiTextField.swift 구현** (53줄)
   - 이모지 입력 필드
   - 2글자 제한
   - X 버튼으로 초기화
+  - 80x80 크기
 
-### 앱 설정
-- [ ] **5.7 앱 정보 섹션 추가**
+- [x] **5.6 SettingsTabView 업데이트** (136줄)
+  - ViewModel 연동
+  - 시술 목록 표시
+  - 시술 추가/수정/삭제 기능
   - 앱 버전 표시
   - 로그아웃 버튼
+  - 로딩 인디케이터
+  - 삭제 확인 알림
 
-- [ ] **5.8 SettingsTabView 완성**
-  - ViewModel 연동
-  - 모든 하위 컴포넌트 통합
+### 추가 작업
+- [x] **Date Extension 수정**
+  - `endOfDay()` 메서드 추가
+- [x] **모든 서비스에 Combine import 추가**
+  - TreatmentService, RecordService, AdjustmentService
+  - CategoryService, ExpenseService
 
 ---
 
