@@ -32,6 +32,19 @@ struct SettingsTabView: View {
             List {
                 // 시술 목록 섹션
                 Section {
+                    // 시술 추가 버튼
+                    Button(action: {
+                        viewModel.showAddSheet()
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(AppColors.primary)
+                            Text("시술 추가")
+                                .foregroundColor(AppColors.primary)
+                            Spacer()
+                        }
+                    }
+
                     if viewModel.treatments.isEmpty {
                         Text("등록된 시술이 없습니다")
                             .foregroundColor(AppColors.textSecondary)
@@ -80,15 +93,6 @@ struct SettingsTabView: View {
                 }
             }
             .navigationTitle("설정")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: {
-                        viewModel.showAddSheet()
-                    }) {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
             .sheet(isPresented: $viewModel.showingAddSheet) {
                 TreatmentEditSheet(
                     viewModel: viewModel,

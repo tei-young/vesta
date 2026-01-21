@@ -49,16 +49,24 @@ struct TreatmentRow: View {
                     Image(systemName: "pencil")
                         .foregroundColor(AppColors.primary)
                         .font(.title3)
+                        .frame(width: 44, height: 44)
                 }
+                .buttonStyle(BorderlessButtonStyle())
 
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                         .font(.title3)
+                        .frame(width: 44, height: 44)
                 }
+                .buttonStyle(BorderlessButtonStyle())
             }
         }
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onEdit()
+        }
     }
 }
 

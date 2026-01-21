@@ -88,6 +88,7 @@ class SettingsViewModel: ObservableObject {
         do {
             try await treatmentService.updateTreatment(treatment, userId: userId)
             editingTreatment = nil
+            showingAddSheet = false
         } catch {
             errorMessage = "시술 수정 실패: \(error.localizedDescription)"
         }
