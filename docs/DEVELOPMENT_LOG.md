@@ -684,15 +684,172 @@ private func handleGoogleSignIn() {
 
 ---
 
+---
+
+## 2026-01-22
+
+### ✅ Phase 1.5 완료: Google Sign In 테스트 성공
+
+#### 20. Google Sign In 테스트 완료
+
+**결과:**
+- ✅ Google Sign In 정상 작동 확인
+- ✅ 로그인/로그아웃 정상 동작
+- ✅ Firebase Console에서 인증된 사용자 확인 완료
+
+**해결한 이슈:**
+- FirebaseCore import 에러 → `Auth.auth().app?.options.clientID` 대신 GoogleService-Info.plist 직접 읽기로 변경
+- URL Scheme 에러 → Clean Build 및 앱 재설치로 해결
+
+---
+
+### ✅ Phase 2 완료: 핵심 서비스 레이어 구현
+
+#### 21. FirestoreService.swift 구현 (308줄)
+
+**구현 내용:**
+- Firestore 기본 CRUD 유틸리티 클래스
+- 사용자별 컬렉션 참조 생성 메서드
+- Generic CRUD 메서드 (addDocument, setDocument, updateDocument, deleteDocument)
+- 단일/다중 문서 조회 메서드
+- 쿼리 기반 문서 조회
+- 배치 업데이트 (순서 변경 등에 사용)
+
+**주요 메서드:**
+```swift
+func getUserCollection(userId: String, collectionName: String) -> CollectionReference
+func addDocument<T: Encodable>(_:userId:collectionName:) async throws -> String
+func updateDocument(documentId:data:userId:collectionName:) async throws
+func deleteDocument(documentId:userId:collectionName:) async throws
+func getDocuments<T: Decodable>(userId:collectionName:orderBy:) async throws -> [T]
+func queryDocuments<T: Decodable>(userId:collectionName:field:isEqualTo:) async throws -> [T]
+func batchUpdate(updates:userId:collectionName:) async throws
+```
+
+**에러 처리:**
+- FirestoreError enum 정의
+- 상세한 에러 메시지 제공
+
+---
+
+#### 22. TreatmentService.swift 구현 (256줄)
+
+**구현 내용:**
+- 시술 관리 서비스 (@MainActor, ObservableObject)
+- @Published로 실시간 상태 관리
+
+**주요 기능:**
+```swift
+func fetchTreatments(userId:) async
+func addTreatment(name:price:icon:color:userId:) async throws -> String
+func updateTreatment(_:userId:) async throws
+func deleteTreatment(id:userId:) async throws
+func reorderTreatments(_:userId:) async throws
+func getTreatment(byId:) -> Treatment?
+```
+
+**특징:**
+- 로컬 배열 자동 동기화
+- order 값 자동 계산
+- 배치 업데이트로 순서 변경
+
+---
+
+#### 23. RecordService.swift 구현 (281줄)
+
+**구현 내용:**
+- 일별 시술 기록 관리 서비스
+
+**주요 기능:**
+```swift
+func fetchRecords(userId:date:) async
+func fetchMonthlyRecords(userId:year:month:) async -> [DailyRecord]
+func addOrUpdateRecord(userId:date:treatmentId:price:) async throws -> String
+func updateRecordCount(id:count:totalAmount:userId:) async throws
+func deleteRecord(id:userId:) async throws
+func getTotalRevenue(for:) -> Int
+func groupRecordsByTreatment() -> [String: [DailyRecord]]
+```
+
+**특징:**
+- 동일 날짜 + 시술 ID 기록 자동 업데이트 (count 증가)
+- 날짜별/월별 조회 최적화
+- 시작일/종료일 기반 범위 쿼리
+
+---
+
+#### 24. AdjustmentService.swift 구현 (265줄)
+
+**구현 내용:**
+- 조정 금액 관리 서비스 (할인, 팁)
+
+**주요 기능:**
+```swift
+func fetchAdjustments(userId:date:) async
+func fetchMonthlyAdjustments(userId:year:month:) async -> [DailyAdjustment]
+func addAdjustment(userId:date:amount:reason:) async throws -> String
+func updateAdjustment(_:userId:) async throws
+func deleteAdjustment(id:userId:) async throws
+func getTotalAdjustment(for:) -> Int
+func getTotalDiscount(for:) -> Int
+func getTotalExtra(for:) -> Int
+```
+
+**특징:**
+- 음수: 할인, 양수: 팁/추가금액
+- 날짜별 총 조정 금액 계산
+- 할인/추가 금액 분리 계산
+
+---
+
+#### 25. CategoryService.swift 구현 (280줄)
+
+**구현 내용:**
+- 지출 카테고리 관리 서비스
+
+**주요 기능:**
+```swift
+func fetchCategories(userId:) async
+func addCategory(name:icon:userId:) async throws -> String
+func updateCategory(_:userId:) async throws
+func deleteCategory(id:userId:) async throws
+func reorderCategories(_:userId:) async throws
+func createDefaultCategories(userId:) async throws
+```
+
+**특징:**
+- 기본 카테고리 자동 생성 (재료비, 인건비, 월세, 관리비, 기타)
+- 순서 변경 지원
+- 이모지 아이콘 지원
+
+---
+
+#### 26. ExpenseService.swift 구현 (284줄)
+
+**구현 내용:**
+- 월별 지출 관리 서비스
+
+**주요 기능:**
+```swift
+func fetchExpenses(userId:yearMonth:) async
+func upsertExpense(userId:yearMonth:categoryId:amount:) async throws -> String
+func deleteExpense(id:userId:) async throws
+func copyFromPreviousMonth(userId:fromYearMonth:toYearMonth:) async throws
+func getTotalExpense(for:) -> Int
+func getExpenseAmount(yearMonth:categoryId:) -> Int
+func groupExpensesByCategory() -> [String: MonthlyExpense]
+```
+
+**특징:**
+- Upsert 방식 (기존 데이터 있으면 업데이트, 없으면 추가)
+- 전월 지출 복사 기능 (중복 방지)
+- yearMonth 문자열 기반 조회 ("2026-01")
+
+---
+
 ## 다음 단계
 
-### 즉시 진행:
-1. ✅ Google Sign In 테스트 (대기 중)
-   - 시뮬레이터 또는 실제 기기에서 테스트
-   - Firebase Console에서 인증된 사용자 확인
-
 ### 이후 계획:
-- Phase 2: 서비스 레이어 구현 (6개 Service 파일)
 - Phase 3: 캘린더 탭 완성
 - Phase 4: 결산 탭 완성
 - Phase 5: 설정 탭 완성
@@ -764,10 +921,18 @@ users/{userId}/monthlyExpenses/...
 
 ## 코드 통계
 
-- **Swift 파일**: 21개
-- **총 코드 라인**: 약 1,500줄 (주석 포함)
+### Phase 2 완료 후
+- **Swift 파일**: 27개 (+6개)
+- **총 코드 라인**: 약 3,174줄 (+1,674줄)
 - **모델**: 6개
-- **서비스**: 1개 (AuthService)
+- **서비스**: 7개 (AuthService + 6개 비즈니스 레이어)
+  - AuthService (198줄)
+  - FirestoreService (308줄)
+  - TreatmentService (256줄)
+  - RecordService (281줄)
+  - AdjustmentService (265줄)
+  - CategoryService (280줄)
+  - ExpenseService (284줄)
 - **뷰**: 8개
 - **Extensions**: 4개
 - **Constants**: 3개
