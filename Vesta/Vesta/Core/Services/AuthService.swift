@@ -97,7 +97,8 @@ class AuthService: ObservableObject {
 
     /// Google Sign In 처리
     func signInWithGoogle() async throws {
-        guard let clientID = Auth.auth().app?.options.clientID else {
+        // GoogleService-Info.plist에서 CLIENT_ID 읽기
+        guard let clientID = getGoogleClientID() else {
             throw AuthError.invalidToken
         }
 
@@ -171,6 +172,16 @@ class AuthService: ObservableObject {
         }.joined()
 
         return hashString
+    }
+
+    /// GoogleService-Info.plist에서 CLIENT_ID 읽기
+    private func getGoogleClientID() -> String? {
+        guard let filePath = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+              let plist = NSDictionary(contentsOfFile: filePath),
+              let clientID = plist["CLIENT_ID"] as? String else {
+            return nil
+        }
+        return clientID
     }
 }
 
