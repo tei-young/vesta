@@ -17,12 +17,12 @@ struct ColorPickerView: View {
 
     var body: some View {
         LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(TreatmentColors.allColors, id: \.hex) { colorOption in
+            ForEach(TreatmentColors.palette) { colorOption in
                 ColorCircle(
                     color: colorOption,
-                    isSelected: selectedColor == colorOption.hex
+                    isSelected: selectedColor == colorOption.value
                 ) {
-                    selectedColor = colorOption.hex
+                    selectedColor = colorOption.value
                 }
             }
         }
@@ -41,7 +41,7 @@ struct ColorCircle: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: color.hex))
+                    .fill(Color(hex: color.value))
                     .frame(width: 50, height: 50)
 
                 if isSelected {
