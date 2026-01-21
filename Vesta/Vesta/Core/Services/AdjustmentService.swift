@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import FirebaseFirestore
 
 /// 조정 금액 관리 서비스 (할인, 팁 등)

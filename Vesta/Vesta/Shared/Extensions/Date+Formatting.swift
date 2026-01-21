@@ -71,6 +71,14 @@ extension Date {
         Calendar.current.startOfDay(for: self)
     }
 
+    /// 해당 날짜의 마지막 시간 (23:59:59)
+    func endOfDay() -> Date {
+        var components = DateComponents()
+        components.day = 1
+        components.second = -1
+        return Calendar.current.date(byAdding: components, to: startOfDay()) ?? self
+    }
+
     /// 해당 월의 시작 날짜
     func startOfMonth() -> Date {
         let components = Calendar.current.dateComponents([.year, .month], from: self)
