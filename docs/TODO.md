@@ -37,57 +37,60 @@
 - [x] 1.5.6 AuthService.swift에 `signInWithGoogle()` 메서드 구현
 - [x] 1.5.7 LoginView.swift에 Google Sign In 버튼 추가
 
-### 🟡 진행 중
-- [ ] **1.5.8 Google Sign In 테스트**
+### ✅ 완료
+- [x] **1.5.8 Google Sign In 테스트**
   - 시뮬레이터 또는 실제 기기에서 테스트
   - 로그인/로그아웃 확인
 
 ---
 
-## 🟠 Priority 2: 핵심 서비스 레이어 구현
+## 🟠 Priority 2: 핵심 서비스 레이어 구현 ✅ 완료
 
-### Firebase 서비스 기본
-- [ ] **2.1 FirestoreService.swift 생성**
+### ✅ 완료
+- [x] **2.1 FirestoreService.swift 생성** (308줄)
   - Firestore 기본 CRUD 유틸리티
   - userId 기반 컬렉션 참조 헬퍼
   - 에러 핸들링 공통 로직
+  - Generic 타입 지원 (Encodable/Decodable)
+  - 배치 업데이트 기능
 
-### 시술 관리
-- [ ] **2.2 TreatmentService.swift 구현**
+- [x] **2.2 TreatmentService.swift 구현** (256줄)
   - `fetchTreatments(userId:)` - 시술 목록 조회
   - `addTreatment(_:userId:)` - 시술 추가
   - `updateTreatment(_:userId:)` - 시술 수정
   - `deleteTreatment(id:userId:)` - 시술 삭제
   - `reorderTreatments(_:userId:)` - 순서 변경
+  - @Published로 실시간 상태 관리
 
-### 일별 기록 관리
-- [ ] **2.3 RecordService.swift 구현**
+- [x] **2.3 RecordService.swift 구현** (281줄)
   - `fetchRecords(userId:date:)` - 특정 날짜 기록 조회
   - `fetchMonthlyRecords(userId:year:month:)` - 월별 기록 조회
   - `addOrUpdateRecord(userId:date:treatmentId:price:)` - 기록 추가/수정
   - `updateRecordCount(id:count:totalAmount:)` - 수량 변경
   - `deleteRecord(id:userId:)` - 기록 삭제
+  - 동일 날짜+시술 자동 업데이트 (count 증가)
 
-### 조정 금액 관리
-- [ ] **2.4 AdjustmentService.swift 구현**
+- [x] **2.4 AdjustmentService.swift 구현** (265줄)
   - `fetchAdjustments(userId:date:)` - 특정 날짜 조정 조회
+  - `fetchMonthlyAdjustments(userId:year:month:)` - 월별 조정 조회
   - `addAdjustment(_:userId:)` - 조정 추가
   - `updateAdjustment(_:userId:)` - 조정 수정
   - `deleteAdjustment(id:userId:)` - 조정 삭제
+  - 할인/팁 분리 계산 메서드
 
-### 지출 카테고리 관리
-- [ ] **2.5 CategoryService.swift 구현**
+- [x] **2.5 CategoryService.swift 구현** (280줄)
   - `fetchCategories(userId:)` - 카테고리 목록 조회
   - `addCategory(_:userId:)` - 카테고리 추가
   - `updateCategory(_:userId:)` - 카테고리 수정
   - `deleteCategory(id:userId:)` - 카테고리 삭제
   - `reorderCategories(_:userId:)` - 순서 변경
+  - `createDefaultCategories(userId:)` - 기본 카테고리 생성
 
-### 월별 지출 관리
-- [ ] **2.6 ExpenseService.swift 구현**
+- [x] **2.6 ExpenseService.swift 구현** (284줄)
   - `fetchExpenses(userId:yearMonth:)` - 월별 지출 조회
   - `upsertExpense(userId:yearMonth:categoryId:amount:)` - 지출 추가/수정
   - `copyFromPreviousMonth(userId:from:to:)` - 전월 지출 복사
+  - Upsert 방식으로 중복 방지
 
 ---
 
