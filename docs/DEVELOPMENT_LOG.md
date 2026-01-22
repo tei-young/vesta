@@ -1523,6 +1523,220 @@ NavigationView {
 
 ---
 
+#### 45. 캘린더 탭 빌드 에러 수정 (17개 에러 해결)
+
+**발생한 에러들:**
+
+1. **AppColors.backgroundSecondary 없음** (3곳)
+   - DayDetailSheet.swift에서 존재하지 않는 색상 참조
+   - `AppColors.backgroundSecondary` → `AppColors.card`로 수정
+
+2. **메서드 시그니처 불일치**
+   - `getTreatment(for:)` → `getTreatment(byId:)`
+   - `incrementRecord()`, `decrementRecord()` 메서드가 존재하지 않음
+   - `updateRecordCount(record:increment:)` 메서드 사용으로 변경
+
+3. **Argument label 누락**
+   - `deleteRecord(record:)`, `deleteAdjustment(adjustment:)` 파라미터 레이블 추가
+
+4. **CalendarViewModel computed property 누락**
+   - `totalRecordAmount`, `totalAdjustmentAmount` 추가
+   - `dailyTotal`을 위 두 property를 사용하도록 리팩토링
+
+5. **CalendarTabView 구조 문제**
+   - MonthHeaderView에 개별 파라미터 전달 필요
+   - `loadTreatments()`, `loadMonthlyData()` → `fetchInitialData()` 호출
+   - AuthService 초기화 패턴 수정
+
+6. **Preview 에러**
+   - CalendarViewModel(), DayDetailSheet() 등의 Preview에서 authService 파라미터 누락
+
+**수정 결과:**
+- ✅ 17개 에러 모두 수정
+- ✅ 빌드 성공
+
+---
+
+#### 46. 코드 품질 개선 (Warning 7개 해결)
+
+**수정한 Warning들:**
+
+1. **ContentView.swift:22** - 사용하지 않는 `user` 변수
+   ```swift
+   // 변경 전
+   } else if authService.isAuthenticated, let user = authService.currentUser {
+
+   // 변경 후
+   } else if authService.isAuthenticated, let _ = authService.currentUser {
+   ```
+
+2. **AdjustmentService.swift:86** - 불필요한 `try`
+   ```swift
+   // 변경 전
+   let monthlyAdjustments = try snapshot.documents.compactMap { ... }
+
+   // 변경 후
+   let monthlyAdjustments = snapshot.documents.compactMap { ... }
+   ```
+
+3. **FirestoreService.swift:184, 216** - 불필요한 `try` (2곳)
+   ```swift
+   let documents = snapshot.documents.compactMap { ... }
+   ```
+
+4. **RecordService.swift:87** - 불필요한 `try`
+   ```swift
+   let monthlyRecords = snapshot.documents.compactMap { ... }
+   ```
+
+5. **CalendarViewModel.swift:259** - 사용하지 않는 `endOfMonth` 변수 삭제
+
+6. **TreatmentEditSheet.swift:113** - 사용하지 않는 `id` 변수
+   ```swift
+   // 변경 전
+   if let treatment = editingTreatment, let id = treatment.id {
+
+   // 변경 후
+   if let treatment = editingTreatment, let _ = treatment.id {
+   ```
+
+**결과:**
+- ✅ 모든 Swift 코드 warning 제거
+- ✅ 클린 빌드 완료
+
+---
+
+#### 47. 크리티컬 버그 수정: AuthService 인스턴스 공유 문제
+
+**문제 발견:**
+- 설정 탭에서 시술 추가 후, 캘린더 탭으로 이동하면 시술이 사라짐
+- 설정 탭으로 돌아가도 시술이 모두 없어짐
+
+**원인 분석:**
+```
+로그 분석:
+✅ [treatments] 문서 추가 성공: 6bL74LnurXg2bN3nM3rJ
+✅ [TreatmentService] 시술 추가 성공: 테스트시술명
+✅ [treatments] 0개 문서 조회 성공  ← 문제!
+✅ [TreatmentService] 0개 시술 조회 완료
+```
+
+**근본 원인:**
+각 탭 뷰의 `init()` 메서드에서 임시 AuthService를 새로 생성하여 사용
+
+```swift
+// 문제가 있던 코드
+struct CalendarTabView: View {
+    init() {
+        let tempAuthService = AuthService()  // 임시 인스턴스 A
+        _viewModel = StateObject(wrappedValue: CalendarViewModel(authService: tempAuthService))
+    }
+}
+
+struct SettingsTabView: View {
+    init() {
+        let tempAuthService = AuthService()  // 임시 인스턴스 B
+        _viewModel = StateObject(wrappedValue: SettingsViewModel(authService: tempAuthService))
+    }
+}
+```
+
+**결과:**
+1. 설정 탭에서 시술 추가: 임시 AuthService A의 userId로 저장
+2. 캘린더 탭으로 이동: 임시 AuthService B의 userId로 조회
+3. 서로 다른 userId → 데이터 0개 조회
+
+**수정 방법:**
+
+**1. MainTabView에서 authService 전달**
+```swift
+struct MainTabView: View {
+    @EnvironmentObject var authService: AuthService  // 추가
+
+    var body: some View {
+        TabView {
+            CalendarTabView()
+                .environmentObject(authService)  // 전달
+            SettlementTabView()
+                .environmentObject(authService)  // 전달
+            SettingsTabView()
+                .environmentObject(authService)  // 전달
+        }
+    }
+}
+```
+
+**2. ViewModel에서 authService를 나중에 설정 가능하도록 변경**
+```swift
+@MainActor
+class CalendarViewModel: ObservableObject {
+    private var _authService: AuthService?
+    var authService: AuthService {
+        _authService ?? AuthService()
+    }
+
+    init(authService: AuthService? = nil) {
+        self._authService = authService
+        setupBindings()
+    }
+
+    func setAuthService(_ service: AuthService) {
+        self._authService = service
+    }
+}
+```
+
+**3. 각 탭 뷰에서 실제 authService 주입**
+```swift
+struct CalendarTabView: View {
+    @EnvironmentObject var authService: AuthService
+    @StateObject private var viewModel = CalendarViewModel()
+
+    var body: some View {
+        // ...
+        .onAppear {
+            viewModel.setAuthService(authService)
+        }
+        .task {
+            await viewModel.fetchInitialData()
+        }
+    }
+}
+```
+
+**4. SettingsViewModel도 동일하게 수정**
+```swift
+@MainActor
+class SettingsViewModel: ObservableObject {
+    private var _authService: AuthService?
+    var authService: AuthService {
+        _authService ?? AuthService()
+    }
+
+    init(authService: AuthService? = nil) {
+        self._authService = authService
+        setupBindings()
+    }
+
+    func setAuthService(_ service: AuthService) {
+        self._authService = service
+    }
+}
+```
+
+**테스트 결과:**
+- ✅ 설정 탭에서 시술 추가
+- ✅ 캘린더 탭으로 이동해도 시술 유지
+- ✅ 다시 설정 탭으로 돌아가도 시술 유지
+- ✅ 모든 탭에서 동일한 userId로 데이터 저장/조회
+
+**교훈:**
+- SwiftUI의 `@EnvironmentObject`는 반드시 상위 뷰에서 `.environmentObject()` modifier로 전달해야 함
+- `init()`에서 임시 인스턴스를 생성하면 각 뷰마다 다른 인스턴스를 사용하게 됨
+- 전역 상태는 앱 최상위에서 하나의 인스턴스만 생성하여 공유해야 함
+
+---
+
 ## 다음 단계
 
 ### 이후 계획:
