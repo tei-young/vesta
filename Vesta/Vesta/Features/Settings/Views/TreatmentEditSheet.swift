@@ -110,7 +110,7 @@ struct TreatmentEditSheet: View {
         guard let price = Int(priceText) else { return }
 
         Task {
-            if let treatment = editingTreatment, let id = treatment.id {
+            if let treatment = editingTreatment, let _ = treatment.id {
                 // 수정
                 var updatedTreatment = treatment
                 updatedTreatment.name = name

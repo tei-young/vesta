@@ -181,7 +181,7 @@ class FirestoreService {
             let snapshot = try await query.getDocuments()
             let decoder = Firestore.Decoder()
 
-            let documents = try snapshot.documents.compactMap { doc -> T? in
+            let documents = snapshot.documents.compactMap { doc -> T? in
                 try? decoder.decode(T.self, from: doc.data())
             }
 
@@ -213,7 +213,7 @@ class FirestoreService {
             let snapshot = try await query.getDocuments()
             let decoder = Firestore.Decoder()
 
-            let documents = try snapshot.documents.compactMap { doc -> T? in
+            let documents = snapshot.documents.compactMap { doc -> T? in
                 try? decoder.decode(T.self, from: doc.data())
             }
 

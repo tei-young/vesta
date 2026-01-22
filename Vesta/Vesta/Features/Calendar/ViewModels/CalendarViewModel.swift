@@ -25,7 +25,10 @@ class CalendarViewModel: ObservableObject {
     @Published var showingTreatmentPicker = false
     @Published var showingAdjustmentEdit = false
 
-    var authService: AuthService
+    private var _authService: AuthService?
+    var authService: AuthService {
+        _authService ?? AuthService()
+    }
     private let recordService = RecordService.shared
     private let adjustmentService = AdjustmentService.shared
     private let treatmentService = TreatmentService.shared
@@ -63,9 +66,13 @@ class CalendarViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(authService: AuthService) {
-        self.authService = authService
+    init(authService: AuthService? = nil) {
+        self._authService = authService
         setupBindings()
+    }
+
+    func setAuthService(_ service: AuthService) {
+        self._authService = service
     }
 
     // MARK: - Setup
@@ -256,7 +263,6 @@ class CalendarViewModel: ObservableObject {
         var days: [Date?] = []
 
         let startOfMonth = currentDate.startOfMonth()
-        let endOfMonth = currentDate.endOfMonth()
 
         guard let range = Calendar.current.range(of: .day, in: .month, for: currentDate) else {
             return days

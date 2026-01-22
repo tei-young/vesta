@@ -11,16 +11,8 @@ struct CalendarTabView: View {
     // MARK: - Properties
 
     @EnvironmentObject var authService: AuthService
-    @StateObject private var viewModel: CalendarViewModel
+    @StateObject private var viewModel = CalendarViewModel()
     @State private var showingDayDetail = false
-
-    // MARK: - Initialization
-
-    init() {
-        // 임시로 AuthService 생성 (실제로는 EnvironmentObject에서 주입됨)
-        let tempAuthService = AuthService()
-        _viewModel = StateObject(wrappedValue: CalendarViewModel(authService: tempAuthService))
-    }
 
     // MARK: - Body
 
@@ -48,6 +40,9 @@ struct CalendarTabView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingDayDetail) {
                 DayDetailSheet(viewModel: viewModel)
+            }
+            .onAppear {
+                viewModel.setAuthService(authService)
             }
             .task {
                 await viewModel.fetchInitialData()

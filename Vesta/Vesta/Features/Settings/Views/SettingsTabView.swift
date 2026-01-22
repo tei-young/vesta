@@ -12,18 +12,10 @@ struct SettingsTabView: View {
     // MARK: - Properties
 
     @EnvironmentObject var authService: AuthService
-    @StateObject private var viewModel: SettingsViewModel
+    @StateObject private var viewModel = SettingsViewModel()
 
     @State private var showingDeleteAlert = false
     @State private var treatmentToDelete: Treatment?
-
-    // MARK: - Initialization
-
-    init() {
-        // 임시로 AuthService 생성 (실제로는 EnvironmentObject에서 주입됨)
-        let tempAuthService = AuthService()
-        _viewModel = StateObject(wrappedValue: SettingsViewModel(authService: tempAuthService))
-    }
 
     // MARK: - Body
 
@@ -114,9 +106,10 @@ struct SettingsTabView: View {
             } message: {
                 Text("정말로 이 시술을 삭제하시겠습니까?")
             }
+            .onAppear {
+                viewModel.setAuthService(authService)
+            }
             .task {
-                // ViewModel에 실제 authService 주입
-                viewModel.authService = authService
                 await viewModel.fetchTreatments()
             }
             .overlay {

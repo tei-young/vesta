@@ -84,7 +84,7 @@ class RecordService: ObservableObject {
             let snapshot = try await query.getDocuments()
             let decoder = Firestore.Decoder()
 
-            let monthlyRecords = try snapshot.documents.compactMap { doc -> DailyRecord? in
+            let monthlyRecords = snapshot.documents.compactMap { doc -> DailyRecord? in
                 try? decoder.decode(DailyRecord.self, from: doc.data())
             }
 

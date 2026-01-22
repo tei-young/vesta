@@ -19,7 +19,7 @@ struct ContentView: View {
             if authService.isLoading {
                 // 로딩 화면
                 LoadingView()
-            } else if authService.isAuthenticated, let user = authService.currentUser {
+            } else if authService.isAuthenticated, let _ = authService.currentUser {
                 // 로그인 완료 -> 메인 앱
                 MainTabView()
                     .environmentObject(authService)
@@ -56,22 +56,27 @@ struct LoadingView: View {
 // MARK: - Main Tab View
 
 struct MainTabView: View {
+    @EnvironmentObject var authService: AuthService
+
     var body: some View {
         TabView {
             // Tab 1: 캘린더
             CalendarTabView()
+                .environmentObject(authService)
                 .tabItem {
                     Label("캘린더", systemImage: "calendar")
                 }
 
             // Tab 2: 결산
             SettlementTabView()
+                .environmentObject(authService)
                 .tabItem {
                     Label("결산", systemImage: "chart.bar.fill")
                 }
 
             // Tab 3: 설정
             SettingsTabView()
+                .environmentObject(authService)
                 .tabItem {
                     Label("설정", systemImage: "gearshape.fill")
                 }

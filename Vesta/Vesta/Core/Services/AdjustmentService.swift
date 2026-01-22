@@ -83,7 +83,7 @@ class AdjustmentService: ObservableObject {
             let snapshot = try await query.getDocuments()
             let decoder = Firestore.Decoder()
 
-            let monthlyAdjustments = try snapshot.documents.compactMap { doc -> DailyAdjustment? in
+            let monthlyAdjustments = snapshot.documents.compactMap { doc -> DailyAdjustment? in
                 try? decoder.decode(DailyAdjustment.self, from: doc.data())
             }
 
