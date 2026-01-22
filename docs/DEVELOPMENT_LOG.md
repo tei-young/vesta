@@ -969,6 +969,41 @@ func signOut()
 
 ---
 
+#### 34. 설정 탭 버그 수정
+
+**발견된 문제:**
+1. **시술 추가 버튼 위치** - toolbar의 + 버튼이 명시적이지 않음
+2. **시술 수정 후 무반응** - 시술 등록 후 버튼 클릭 시 sheet가 닫히지 않음
+3. **시술 클릭 동작 오류** - 시술 행 전체 클릭이나 연필 버튼 클릭 시 모두 삭제 동작 발생
+
+**수정 내용:**
+
+**1. SettingsTabView.swift (35-46번 라인)**
+- toolbar의 + 버튼 제거
+- 시술 관리 섹션 맨 위에 "시술 추가" 버튼 추가
+- plus.circle.fill 아이콘 + "시술 추가" 텍스트로 명시적 표현
+
+**2. SettingsViewModel.swift (91번 라인)**
+- `updateTreatment` 메서드에 `showingAddSheet = false` 추가
+- 시술 수정 완료 후 sheet가 제대로 닫히도록 수정
+
+**3. TreatmentRow.swift (54, 62, 66-69번 라인)**
+- 수정/삭제 버튼에 `.buttonStyle(BorderlessButtonStyle())` 적용
+  - List 내부에서 독립적으로 동작하도록 수정
+  - `frame(width: 44, height: 44)`로 터치 영역 확대
+- 행 전체에 `.onTapGesture { onEdit() }` 추가
+  - 시술 영역 클릭 시 수정 화면으로 이동
+  - `.contentShape(Rectangle())`로 클릭 영역 명확화
+- 휴지통 아이콘만 클릭 시 삭제 동작
+
+**테스트 결과:**
+- ✅ 신규 시술 추가 정상 동작
+- ✅ 시술 수정 정상 동작 (행 클릭 또는 연필 버튼)
+- ✅ 시술 삭제 정상 동작 (휴지통 버튼만)
+- ✅ 여러 시술 등록 가능 (최대 50개)
+
+---
+
 ## 다음 단계
 
 ### 이후 계획:

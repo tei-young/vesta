@@ -247,6 +247,13 @@
   - TreatmentService, RecordService, AdjustmentService
   - CategoryService, ExpenseService
 
+### 버그 수정
+- [x] **설정 탭 버그 수정 (3건)**
+  - 시술 추가 버튼 위치 변경 (toolbar → 섹션 내부)
+  - 시술 수정 후 sheet 닫히지 않는 문제 해결
+  - 시술 클릭 동작 오류 수정 (BorderlessButtonStyle + onTapGesture)
+  - 테스트 완료: 추가/수정/삭제 모두 정상 동작
+
 ---
 
 ## 🟣 Priority 6: 공용 컴포넌트 및 개선
