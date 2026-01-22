@@ -10,10 +10,19 @@ import SwiftUI
 struct CalendarTabView: View {
     // MARK: - Properties
 
-    @StateObject private var viewModel = CalendarViewModel()
+    @EnvironmentObject var authService: AuthService
+    @StateObject private var viewModel: CalendarViewModel
     @State private var showingDayDetail = false
 
     private let weekdaySymbols = ["일", "월", "화", "수", "목", "금", "토"]
+
+    // MARK: - Initialization
+
+    init() {
+        // 임시로 AuthService 생성 (실제로는 EnvironmentObject에서 주입됨)
+        let tempAuthService = AuthService()
+        _viewModel = StateObject(wrappedValue: CalendarViewModel(authService: tempAuthService))
+    }
 
     // MARK: - Body
 

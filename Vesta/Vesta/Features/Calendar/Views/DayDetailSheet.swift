@@ -266,6 +266,6 @@ struct DayDetailSheet: View {
 
 #Preview {
     DayDetailSheet(
-        viewModel: CalendarViewModel()
+        viewModel: CalendarViewModel(authService: AuthService())
     )
 }
