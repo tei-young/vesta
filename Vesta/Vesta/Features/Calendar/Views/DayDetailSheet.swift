@@ -85,7 +85,7 @@ struct DayDetailSheet: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(AppColors.backgroundSecondary)
+        .background(AppColors.card)
         .cornerRadius(12)
     }
 
@@ -123,20 +123,20 @@ struct DayDetailSheet: View {
                     ForEach(viewModel.records) { record in
                         RecordRow(
                             record: record,
-                            treatment: viewModel.getTreatment(for: record.treatmentId),
+                            treatment: viewModel.getTreatment(byId: record.treatmentId),
                             onIncrement: {
                                 Task {
-                                    await viewModel.incrementRecord(record)
+                                    await viewModel.updateRecordCount(record: record, increment: true)
                                 }
                             },
                             onDecrement: {
                                 Task {
-                                    await viewModel.decrementRecord(record)
+                                    await viewModel.updateRecordCount(record: record, increment: false)
                                 }
                             },
                             onDelete: {
                                 Task {
-                                    await viewModel.deleteRecord(record)
+                                    await viewModel.deleteRecord(record: record)
                                 }
                             }
                         )
@@ -148,7 +148,7 @@ struct DayDetailSheet: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .background(AppColors.backgroundSecondary)
+                .background(AppColors.card)
                 .cornerRadius(12)
             }
         }
@@ -190,7 +190,7 @@ struct DayDetailSheet: View {
                             adjustment: adjustment,
                             onDelete: {
                                 Task {
-                                    await viewModel.deleteAdjustment(adjustment)
+                                    await viewModel.deleteAdjustment(adjustment: adjustment)
                                 }
                             }
                         )
@@ -202,7 +202,7 @@ struct DayDetailSheet: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .background(AppColors.backgroundSecondary)
+                .background(AppColors.card)
                 .cornerRadius(12)
             }
         }
@@ -257,7 +257,7 @@ struct DayDetailSheet: View {
             }
         }
         .padding()
-        .background(AppColors.backgroundSecondary)
+        .background(AppColors.card)
         .cornerRadius(12)
     }
 }

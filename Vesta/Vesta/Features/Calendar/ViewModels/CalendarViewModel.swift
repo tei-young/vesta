@@ -49,10 +49,16 @@ class CalendarViewModel: ObservableObject {
         monthlyRecords.reduce(0) { $0 + $1.totalAmount }
     }
 
+    var totalRecordAmount: Int {
+        records.reduce(0) { $0 + $1.totalAmount }
+    }
+
+    var totalAdjustmentAmount: Int {
+        adjustments.reduce(0) { $0 + $1.amount }
+    }
+
     var dailyTotal: Int {
-        let recordTotal = records.reduce(0) { $0 + $1.totalAmount }
-        let adjustmentTotal = adjustments.reduce(0) { $0 + $1.amount }
-        return recordTotal + adjustmentTotal
+        totalRecordAmount + totalAdjustmentAmount
     }
 
     // MARK: - Initialization
