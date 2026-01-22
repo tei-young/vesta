@@ -1,6 +1,6 @@
 # TODO - Vesta iOS 개발 계획
 
-> 최종 업데이트: 2026-01-21
+> 최종 업데이트: 2026-01-22
 
 ## 우선순위별 개발 계획
 
@@ -94,60 +94,79 @@
 
 ---
 
-## 🟡 Priority 3: 캘린더 탭 구현
+## 🟡 Priority 3: 캘린더 탭 구현 ✅ 완료
 
-### 캘린더 UI
-- [ ] **3.1 CalendarViewModel.swift 생성**
+### ✅ 완료
+- [x] **3.1 CalendarViewModel.swift 생성** (279줄)
   - 월별 데이터 관리
   - 날짜 선택 상태 관리
-  - RecordService, AdjustmentService 연동
+  - RecordService, AdjustmentService, TreatmentService 연동
+  - 월 네비게이션 (이전/다음/오늘)
+  - CRUD 작업 (시술 기록, 조정 금액)
+  - 일별/월별 매출 계산
 
-- [ ] **3.2 MonthHeaderView.swift 구현**
+- [x] **3.2 MonthHeaderView.swift 구현** (96줄)
   - 년월 표시
-  - 이전/다음 달 네비게이션
+  - 이전/다음 달 네비게이션 (< > 버튼)
   - 월 총 매출 표시
+  - 오늘 버튼
 
-- [ ] **3.3 CalendarGridView.swift 구현**
-  - 7x6 그리드 캘린더
+- [x] **3.3 CalendarGridView.swift 구현** (47줄)
+  - 7x6 그리드 캘린더 (LazyVGrid)
   - 날짜별 시술 도트 표시
   - 날짜 클릭 이벤트
 
-- [ ] **3.4 DayCell.swift 구현**
+- [x] **3.4 DayCell.swift 구현** (110줄)
   - 날짜 셀 UI
-  - 시술 도트 표시 (최대 3개 + more)
-  - 오늘 날짜 강조
+  - 시술 도트 표시 (4x4 원형)
+  - 오늘 날짜 강조 (굵은 글씨, 연한 배경)
+  - 선택된 날짜 강조 (primary 배경)
 
 ### 일별 상세 화면
-- [ ] **3.5 DayDetailSheet.swift 구현**
-  - 바텀 시트 UI
-  - 일별 총 매출 표시
-  - 시술 추가/조정 버튼
+- [x] **3.5 DayDetailSheet.swift 구현** (272줄)
+  - 바텀 시트 UI (NavigationView)
+  - 날짜 헤더 (날짜 + 요일)
+  - 시술 기록 섹션 (추가/수정/삭제)
+  - 조정 금액 섹션 (추가/삭제)
+  - 합계 섹션 (시술 합계 + 조정 합계 + 일일 합계)
+  - 빈 상태 메시지
 
-- [ ] **3.6 RecordRow.swift 구현**
+- [x] **3.6 RecordRow.swift 구현** (119줄)
   - 시술 기록 행 UI
+  - 색상 원형 + 아이콘 표시
   - 수량 +/- 버튼
+  - 삭제 버튼 (휴지통 아이콘)
+
+- [x] **3.7 AdjustmentRow.swift 구현** (107줄)
+  - 조정 금액 행 UI
+  - 할인/추가금액 구분 표시 (빨강/초록)
+  - 아이콘 자동 변경 (minus/plus)
+  - 사유 표시
   - 삭제 버튼
 
-- [ ] **3.7 AdjustmentRow.swift 구현**
-  - 조정 금액 행 UI
-  - 할인/추가금액 구분 표시
-  - 수정/삭제 버튼
+- [x] **3.8 TreatmentPickerSheet.swift 구현** (137줄)
+  - 시술 선택 바텀 시트 (NavigationView)
+  - 3열 그리드 레이아웃 (LazyVGrid)
+  - TreatmentButton 컴포넌트 (색상 원형 + 아이콘 + 이름 + 가격)
+  - 빈 상태 메시지 (시술 미등록 시)
 
-- [ ] **3.8 TreatmentPickerSheet.swift 구현**
-  - 시술 선택 바텀 시트
-  - 3열 그리드 레이아웃
-  - TreatmentButton 컴포넌트 사용
-
-- [ ] **3.9 AdjustmentEditSheet.swift 구현**
-  - 조정 금액 추가/수정 바텀 시트
-  - 금액 입력 (음수/양수)
+- [x] **3.9 AdjustmentEditSheet.swift 구현** (133줄)
+  - 조정 금액 추가/수정 바텀 시트 (NavigationView + Form)
+  - Segmented Control로 타입 선택 (추가/할인)
+  - 금액 입력 (numberPad)
   - 사유 입력 (선택)
+  - 최종 금액 미리보기
+  - 유효성 검사
 
 ### 캘린더 통합
-- [ ] **3.10 CalendarTabView 완성**
-  - ViewModel 연동
-  - 모든 하위 컴포넌트 통합
-  - 데이터 흐름 테스트
+- [x] **3.10 CalendarTabView 완성** (90줄)
+  - CalendarViewModel 연동 (@StateObject)
+  - MonthHeaderView 통합
+  - 요일 헤더 (일월화수목금토, 일/토 색상 구분)
+  - CalendarGridView 통합
+  - DayDetailSheet 표시 (날짜 선택 시)
+  - 초기 데이터 로딩 (.task)
+  - 월 변경 시 자동 재로드 (.onChange)
 
 ---
 

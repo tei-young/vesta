@@ -1004,10 +1004,528 @@ func signOut()
 
 ---
 
+### ✅ Phase 3 완료: 캘린더 탭 구현
+
+#### 35. CalendarViewModel.swift 구현 (279줄)
+
+**구현 내용:**
+- 캘린더 탭의 모든 상태 및 비즈니스 로직 관리
+- @MainActor, ObservableObject로 메인 스레드 안전성 보장
+
+**주요 상태:**
+```swift
+@Published var currentDate: Date = Date()
+@Published var selectedDate: Date = Date()
+@Published var records: [DailyRecord] = []
+@Published var adjustments: [DailyAdjustment] = []
+@Published var treatments: [Treatment] = []
+@Published var monthlyRecords: [DailyRecord] = []
+@Published var isLoading = false
+@Published var errorMessage: String?
+```
+
+**주요 기능:**
+
+1. **월 네비게이션**
+```swift
+func previousMonth()  // 이전 달로 이동
+func nextMonth()      // 다음 달로 이동
+func goToToday()      // 오늘 날짜로 이동
+```
+
+2. **데이터 로딩**
+```swift
+func loadTreatments() async                      // 시술 목록 로드
+func loadMonthlyData() async                     // 월별 기록/조정 로드
+func loadDailyData(for date: Date) async         // 특정 날짜 데이터 로드
+```
+
+3. **시술 기록 CRUD**
+```swift
+func addRecord(treatmentId: String) async        // 시술 추가
+func incrementRecord(_ record: DailyRecord) async // 수량 +1
+func decrementRecord(_ record: DailyRecord) async // 수량 -1 (0이면 삭제)
+func deleteRecord(_ record: DailyRecord) async   // 기록 삭제
+```
+
+4. **조정 금액 CRUD**
+```swift
+func saveAdjustment(amount: Int, reason: String) async  // 조정 추가
+func deleteAdjustment(_ adjustment: DailyAdjustment) async // 조정 삭제
+```
+
+5. **헬퍼 메서드**
+```swift
+func getDaysInMonth() -> [Date?]     // 7x6 그리드용 날짜 배열 생성
+func hasRecords(for date: Date) -> Bool  // 기록 존재 여부
+func getTreatment(for id: String) -> Treatment?  // 시술 조회
+func selectDate(_ date: Date)        // 날짜 선택
+```
+
+6. **계산 속성**
+```swift
+var monthlyRevenue: Int              // 월별 총 매출
+var totalRecordAmount: Int           // 일별 시술 합계
+var totalAdjustmentAmount: Int       // 일별 조정 합계
+var dailyTotal: Int                  // 일별 총 매출
+```
+
+---
+
+#### 36. MonthHeaderView.swift 구현 (96줄)
+
+**구현 내용:**
+- 월 네비게이션 UI
+- 월별 매출 표시
+
+**UI 구성:**
+```swift
+HStack {
+    // < 버튼 (이전 달)
+    Button { viewModel.previousMonth() }
+
+    // 년월 표시 + 월 매출
+    VStack {
+        Text("2026년 1월")
+        Text("₩150,000").foregroundColor(.primary)
+    }
+
+    // > 버튼 (다음 달)
+    Button { viewModel.nextMonth() }
+
+    // 오늘 버튼
+    Button("오늘") { viewModel.goToToday() }
+}
+```
+
+**특징:**
+- 월 매출 실시간 업데이트
+- 현재 날짜와 같은 월이면 오늘 버튼 비활성화
+- 깔끔한 아이콘 기반 네비게이션
+
+---
+
+#### 37. DayCell.swift 구현 (110줄)
+
+**구현 내용:**
+- 캘린더 그리드의 개별 날짜 셀 UI
+
+**UI 상태:**
+- **일반 날짜**: 기본 텍스트 + 투명 배경
+- **오늘**: 굵은 글씨 + primary 색상 + 연한 배경
+- **선택된 날짜**: 흰색 글씨 + primary 배경
+- **기록 있음**: 하단에 작은 도트 표시
+
+**구현 특징:**
+```swift
+// 기록 표시
+if hasRecords {
+    Circle()
+        .fill(AppColors.primary)
+        .frame(width: 4, height: 4)
+}
+
+// 색상 계산
+private var textColor: Color {
+    if isSelected { return .white }
+    else if isToday { return AppColors.primary }
+    else { return AppColors.textPrimary }
+}
+```
+
+---
+
+#### 38. CalendarGridView.swift 구현 (47줄)
+
+**구현 내용:**
+- 7열 x 최대 6행 그리드 레이아웃
+- LazyVGrid 사용으로 성능 최적화
+
+**특징:**
+```swift
+private let columns = Array(repeating: GridItem(.flexible()), count: 7)
+
+LazyVGrid(columns: columns, spacing: 8) {
+    ForEach(0..<days.count, id: \.self) { index in
+        if let date = days[index] {
+            DayCell(date: date, ...)
+        } else {
+            DayCell(date: nil, ...)  // 빈 셀
+        }
+    }
+}
+```
+
+- 이전/다음 월의 날짜는 nil로 처리 (빈 셀)
+- 날짜 클릭 시 selectDate() 호출
+
+---
+
+#### 39. RecordRow.swift 구현 (119줄)
+
+**구현 내용:**
+- 시술 기록 항목 표시 및 수량 조절 UI
+
+**UI 구성:**
+```swift
+HStack {
+    // 색상 원형 + 아이콘
+    ZStack {
+        Circle().fill(Color(hex: treatment.color))
+        Text(treatment.icon)
+    }
+
+    // 시술 정보
+    VStack(alignment: .leading) {
+        Text(treatment.name)
+        Text(record.totalAmount.formattedCurrency)
+    }
+
+    Spacer()
+
+    // 수량 조절
+    HStack {
+        Button { onDecrement() }  // -
+        Text("\(record.count)")
+        Button { onIncrement() }  // +
+    }
+
+    // 삭제 버튼
+    Button { onDelete() }
+}
+```
+
+**특징:**
+- +/- 버튼으로 수량 조절
+- count가 0이 되면 자동 삭제
+- 시술 정보 시각적 표시 (색상, 아이콘)
+
+---
+
+#### 40. AdjustmentRow.swift 구현 (107줄)
+
+**구현 내용:**
+- 조정 금액 항목 표시 UI
+
+**UI 구성:**
+```swift
+HStack {
+    // 아이콘 (할인: 빨강 minus, 추가: 초록 plus)
+    ZStack {
+        Circle().fill(iconBackgroundColor)
+        Image(systemName: iconName)
+    }
+
+    // 조정 정보
+    VStack(alignment: .leading) {
+        Text(adjustment.amount < 0 ? "할인" : "추가 금액")
+        if let reason = adjustment.reason {
+            Text(reason).font(.caption)
+        }
+    }
+
+    Spacer()
+
+    // 금액 (빨강/초록)
+    Text(adjustment.amount.formattedCurrency)
+        .foregroundColor(adjustment.amount < 0 ? .red : .green)
+
+    // 삭제 버튼
+    Button { onDelete() }
+}
+```
+
+**특징:**
+- 음수: 빨간색, 양수: 초록색
+- 아이콘 자동 변경 (minus/plus)
+- 사유 선택 표시
+
+---
+
+#### 41. TreatmentPickerSheet.swift 구현 (137줄)
+
+**구현 내용:**
+- 시술 선택 바텀 시트 (NavigationView)
+
+**UI 구성:**
+```swift
+NavigationView {
+    ScrollView {
+        if treatments.isEmpty {
+            // 빈 상태 메시지
+            Text("등록된 시술이 없습니다")
+            Text("설정 탭에서 시술을 먼저 등록해주세요")
+        } else {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(treatments) { treatment in
+                    TreatmentButton(treatment: treatment) {
+                        onSelect(treatment.id)
+                    }
+                }
+            }
+        }
+    }
+    .navigationTitle("시술 선택")
+    .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("취소") { dismiss() }
+        }
+    }
+}
+```
+
+**TreatmentButton 컴포넌트:**
+```swift
+VStack {
+    // 색상 원형 + 아이콘
+    ZStack {
+        Circle().fill(Color(hex: treatment.color))
+        Text(treatment.icon)
+    }
+
+    // 시술명
+    Text(treatment.name)
+
+    // 가격
+    Text(treatment.price.formattedCurrency)
+}
+```
+
+**특징:**
+- 3열 그리드 레이아웃
+- 빈 상태 처리
+- 시술 선택 시 sheet 자동 닫힘
+
+---
+
+#### 42. AdjustmentEditSheet.swift 구현 (133줄)
+
+**구현 내용:**
+- 조정 금액 추가/수정 바텀 시트 (NavigationView + Form)
+
+**UI 구성:**
+```swift
+NavigationView {
+    Form {
+        Section {
+            // 타입 선택 (Segmented Control)
+            Picker("타입", selection: $isDiscount) {
+                Text("추가 금액").tag(false)
+                Text("할인").tag(true)
+            }
+            .pickerStyle(.segmented)
+
+            // 금액 입력
+            HStack {
+                Text("금액")
+                Spacer()
+                TextField("0", text: $amountText)
+                    .keyboardType(.numberPad)
+                Text("원")
+            }
+
+            // 사유 입력 (선택)
+            TextField("사유 (선택)", text: $reason)
+        }
+
+        Section {
+            // 미리보기
+            HStack {
+                Text("최종 금액")
+                Spacer()
+                Text(finalAmount.formattedCurrency)
+                    .foregroundColor(isDiscount ? .red : .green)
+            }
+        }
+    }
+    .navigationTitle("금액 조정")
+    .toolbar {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("취소") { dismiss() }
+        }
+        ToolbarItem(placement: .confirmationAction) {
+            Button("저장") { saveAdjustment() }
+                .disabled(!isValid)
+        }
+    }
+}
+```
+
+**특징:**
+- Segmented Control로 타입 선택
+- 숫자만 입력 가능 (numberPad)
+- 최종 금액 미리보기 (색상 구분)
+- 유효성 검사 (금액 > 0)
+- @FocusState로 자동 포커스
+
+---
+
+#### 43. DayDetailSheet.swift 구현 (272줄)
+
+**구현 내용:**
+- 일별 상세 정보 메인 바텀 시트
+- 시술 기록 + 조정 금액 + 합계 표시
+
+**UI 구성:**
+
+1. **날짜 헤더**
+```swift
+VStack {
+    Text(viewModel.selectedDate.formatted(.dateTime.year().month().day()))
+    Text(viewModel.selectedDate.formatted(.dateTime.weekday(.wide)))
+}
+```
+
+2. **시술 기록 섹션**
+```swift
+VStack {
+    HStack {
+        Text("시술 기록")
+        Spacer()
+        Button("시술 추가") { showingTreatmentPicker = true }
+    }
+
+    if viewModel.records.isEmpty {
+        Text("등록된 시술이 없습니다")
+    } else {
+        ForEach(viewModel.records) { record in
+            RecordRow(
+                record: record,
+                treatment: viewModel.getTreatment(for: record.treatmentId),
+                onIncrement: { await viewModel.incrementRecord(record) },
+                onDecrement: { await viewModel.decrementRecord(record) },
+                onDelete: { await viewModel.deleteRecord(record) }
+            )
+        }
+    }
+}
+```
+
+3. **조정 금액 섹션**
+```swift
+VStack {
+    HStack {
+        Text("금액 조정")
+        Spacer()
+        Button("조정 추가") { showingAdjustmentEdit = true }
+    }
+
+    if viewModel.adjustments.isEmpty {
+        Text("금액 조정 내역이 없습니다")
+    } else {
+        ForEach(viewModel.adjustments) { adjustment in
+            AdjustmentRow(
+                adjustment: adjustment,
+                onDelete: { await viewModel.deleteAdjustment(adjustment) }
+            )
+        }
+    }
+}
+```
+
+4. **합계 섹션**
+```swift
+VStack {
+    HStack {
+        Text("시술 합계")
+        Spacer()
+        Text(viewModel.totalRecordAmount.formattedCurrency)
+    }
+
+    if !viewModel.adjustments.isEmpty {
+        HStack {
+            Text("조정 합계")
+            Spacer()
+            Text(viewModel.totalAdjustmentAmount.formattedCurrency)
+                .foregroundColor(viewModel.totalAdjustmentAmount < 0 ? .red : .green)
+        }
+    }
+
+    Divider()
+
+    HStack {
+        Text("일일 합계")
+        Spacer()
+        Text(viewModel.dailyTotal.formattedCurrency)
+            .font(.title3)
+            .fontWeight(.bold)
+    }
+}
+```
+
+**특징:**
+- 두 개의 sheet 관리 (TreatmentPickerSheet, AdjustmentEditSheet)
+- 빈 상태 메시지 표시
+- 실시간 합계 계산 및 표시
+- Task를 이용한 비동기 작업 처리
+
+---
+
+#### 44. CalendarTabView.swift 업데이트 (90줄)
+
+**구현 내용:**
+- 캘린더 탭 메인 뷰로 모든 컴포넌트 통합
+
+**UI 구성:**
+```swift
+NavigationView {
+    VStack(spacing: 16) {
+        // 월 헤더
+        MonthHeaderView(viewModel: viewModel)
+
+        // 요일 헤더 (일월화수목금토)
+        HStack {
+            ForEach(weekdaySymbols, id: \.self) { symbol in
+                Text(symbol)
+                    .foregroundColor(
+                        symbol == "일" ? .red :
+                        symbol == "토" ? .blue :
+                        AppColors.textSecondary
+                    )
+            }
+        }
+
+        // 캘린더 그리드
+        CalendarGridView(
+            viewModel: viewModel,
+            days: viewModel.getDaysInMonth()
+        )
+
+        Spacer()
+    }
+    .navigationTitle("캘린더")
+    .sheet(isPresented: $showingDayDetail) {
+        DayDetailSheet(viewModel: viewModel)
+    }
+    .task {
+        await viewModel.loadTreatments()
+        await viewModel.loadMonthlyData()
+    }
+    .onChange(of: viewModel.selectedDate) { _, newDate in
+        Task {
+            await viewModel.loadDailyData(for: newDate)
+            showingDayDetail = true
+        }
+    }
+    .onChange(of: viewModel.currentDate) { _, _ in
+        Task {
+            await viewModel.loadMonthlyData()
+        }
+    }
+}
+```
+
+**특징:**
+- 요일 헤더 색상 구분 (일요일: 빨강, 토요일: 파랑)
+- 날짜 선택 시 자동으로 DayDetailSheet 표시
+- 월 변경 시 자동 데이터 재로드
+- .task로 초기 데이터 로딩
+
+---
+
 ## 다음 단계
 
 ### 이후 계획:
-- Phase 3: 캘린더 탭 완성
 - Phase 4: 결산 탭 완성
 
 ---
@@ -1077,9 +1595,9 @@ users/{userId}/monthlyExpenses/...
 
 ## 코드 통계
 
-### Phase 5 완료 후
-- **Swift 파일**: 33개 (+6개)
-- **총 코드 라인**: 약 3,805줄 (+631줄)
+### Phase 3 완료 후
+- **Swift 파일**: 43개 (+10개)
+- **총 코드 라인**: 약 5,195줄 (+1,390줄)
 - **모델**: 6개
 - **서비스**: 7개 (AuthService + 6개 비즈니스 레이어)
   - AuthService (198줄)
@@ -1089,12 +1607,21 @@ users/{userId}/monthlyExpenses/...
   - AdjustmentService (265줄)
   - CategoryService (280줄)
   - ExpenseService (284줄)
-- **ViewModel**: 1개
+- **ViewModel**: 2개
   - SettingsViewModel (131줄)
-- **뷰**: 13개 (+5개)
-  - 기존 8개 (LoginView, CalendarTabView, SettlementTabView, SettingsTabView 등)
-  - TreatmentRow (88줄)
-  - TreatmentEditSheet (154줄)
+  - CalendarViewModel (279줄)
+- **뷰**: 23개 (+10개)
+  - 기존 13개 (LoginView, SettingsTabView, TreatmentRow, TreatmentEditSheet 등)
+  - **캘린더 탭 (10개)**:
+    - CalendarTabView (90줄)
+    - MonthHeaderView (96줄)
+    - DayCell (110줄)
+    - CalendarGridView (47줄)
+    - RecordRow (119줄)
+    - AdjustmentRow (107줄)
+    - TreatmentPickerSheet (137줄)
+    - AdjustmentEditSheet (133줄)
+    - DayDetailSheet (272줄)
 - **공용 컴포넌트**: 2개
   - ColorPickerView (63줄)
   - EmojiTextField (53줄)
