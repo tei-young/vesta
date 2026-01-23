@@ -32,6 +32,8 @@ class TreatmentService: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        print("🔍 [TreatmentService] 시술 조회 시작 - userId: \(userId)")
+
         do {
             let fetchedTreatments: [Treatment] = try await firestoreService.getDocuments(
                 userId: userId,
@@ -41,7 +43,7 @@ class TreatmentService: ObservableObject {
             )
 
             self.treatments = fetchedTreatments
-            print("✅ [TreatmentService] \(treatments.count)개 시술 조회 완료")
+            print("✅ [TreatmentService] \(treatments.count)개 시술 조회 완료 - userId: \(userId)")
         } catch {
             errorMessage = "시술 목록 조회 실패: \(error.localizedDescription)"
             print("❌ [TreatmentService] 조회 실패: \(error.localizedDescription)")
@@ -71,6 +73,8 @@ class TreatmentService: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        print("🔍 [TreatmentService] 시술 추가 시작 - userId: \(userId), name: \(name)")
+
         // 현재 최대 order 값 계산
         let maxOrder = treatments.map { $0.order }.max() ?? -1
         let newOrder = maxOrder + 1
@@ -92,6 +96,8 @@ class TreatmentService: ObservableObject {
                 userId: userId,
                 collectionName: collectionName
             )
+
+            print("✅ [TreatmentService] Firestore 문서 추가 성공 - userId: \(userId), docId: \(documentId)")
 
             // ID 할당 후 로컬 배열에 추가
             newTreatment.id = documentId

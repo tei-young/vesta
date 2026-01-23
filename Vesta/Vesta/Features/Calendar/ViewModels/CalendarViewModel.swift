@@ -65,6 +65,7 @@ class CalendarViewModel: ObservableObject {
 
     init(authService: AuthService) {
         self.authService = authService
+        print("🔍 [CalendarViewModel] init - authService: \(authService), currentUser: \(authService.currentUser?.id ?? "nil")")
         setupBindings()
     }
 
@@ -111,8 +112,12 @@ class CalendarViewModel: ObservableObject {
     // MARK: - Data Fetching
 
     func fetchInitialData() async {
-        guard let userId = authService.currentUser?.id else { return }
+        guard let userId = authService.currentUser?.id else {
+            print("❌ [CalendarViewModel] fetchInitialData - currentUser is nil")
+            return
+        }
 
+        print("🔍 [CalendarViewModel] fetchInitialData - userId: \(userId)")
         await treatmentService.fetchTreatments(userId: userId)
         await fetchMonthlyData()
         await fetchDayData(for: selectedDate)

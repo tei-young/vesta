@@ -27,6 +27,7 @@ class SettingsViewModel: ObservableObject {
 
     init(authService: AuthService) {
         self.authService = authService
+        print("🔍 [SettingsViewModel] init - authService: \(authService), currentUser: \(authService.currentUser?.id ?? "nil")")
         setupBindings()
     }
 
@@ -48,10 +49,12 @@ class SettingsViewModel: ObservableObject {
 
     func fetchTreatments() async {
         guard let userId = authService.currentUser?.id else {
+            print("❌ [SettingsViewModel] fetchTreatments - currentUser is nil")
             errorMessage = "사용자 정보를 찾을 수 없습니다."
             return
         }
 
+        print("🔍 [SettingsViewModel] fetchTreatments - userId: \(userId)")
         await treatmentService.fetchTreatments(userId: userId)
     }
 
@@ -59,9 +62,12 @@ class SettingsViewModel: ObservableObject {
 
     func addTreatment(name: String, price: Int, icon: String?, color: String) async {
         guard let userId = authService.currentUser?.id else {
+            print("❌ [SettingsViewModel] addTreatment - currentUser is nil")
             errorMessage = "사용자 정보를 찾을 수 없습니다."
             return
         }
+
+        print("🔍 [SettingsViewModel] addTreatment - userId: \(userId), name: \(name)")
 
         do {
             _ = try await treatmentService.addTreatment(
