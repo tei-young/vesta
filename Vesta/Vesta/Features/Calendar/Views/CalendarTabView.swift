@@ -8,11 +8,24 @@
 import SwiftUI
 
 struct CalendarTabView: View {
+    @EnvironmentObject var authService: AuthService
+
+    var body: some View {
+        CalendarTabContent(authService: authService)
+    }
+}
+
+private struct CalendarTabContent: View {
     // MARK: - Properties
 
-    @EnvironmentObject var authService: AuthService
-    @StateObject private var viewModel = CalendarViewModel()
+    @StateObject private var viewModel: CalendarViewModel
     @State private var showingDayDetail = false
+
+    // MARK: - Initialization
+
+    init(authService: AuthService) {
+        _viewModel = StateObject(wrappedValue: CalendarViewModel(authService: authService))
+    }
 
     // MARK: - Body
 
@@ -40,9 +53,6 @@ struct CalendarTabView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingDayDetail) {
                 DayDetailSheet(viewModel: viewModel)
-            }
-            .onAppear {
-                viewModel.setAuthService(authService)
             }
             .task {
                 await viewModel.fetchInitialData()

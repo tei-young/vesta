@@ -20,21 +20,14 @@ class SettingsViewModel: ObservableObject {
     @Published var editingTreatment: Treatment?
 
     private let treatmentService = TreatmentService.shared
-    private var _authService: AuthService?
-    var authService: AuthService {
-        _authService ?? AuthService()
-    }
+    var authService: AuthService
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Initialization
 
-    init(authService: AuthService? = nil) {
-        self._authService = authService
+    init(authService: AuthService) {
+        self.authService = authService
         setupBindings()
-    }
-
-    func setAuthService(_ service: AuthService) {
-        self._authService = service
     }
 
     // MARK: - Setup

@@ -9,13 +9,25 @@
 import SwiftUI
 
 struct SettingsTabView: View {
+    @EnvironmentObject var authService: AuthService
+
+    var body: some View {
+        SettingsTabContent(authService: authService)
+    }
+}
+
+private struct SettingsTabContent: View {
     // MARK: - Properties
 
-    @EnvironmentObject var authService: AuthService
-    @StateObject private var viewModel = SettingsViewModel()
-
+    @StateObject private var viewModel: SettingsViewModel
     @State private var showingDeleteAlert = false
     @State private var treatmentToDelete: Treatment?
+
+    // MARK: - Initialization
+
+    init(authService: AuthService) {
+        _viewModel = StateObject(wrappedValue: SettingsViewModel(authService: authService))
+    }
 
     // MARK: - Body
 
@@ -105,9 +117,6 @@ struct SettingsTabView: View {
                 }
             } message: {
                 Text("정말로 이 시술을 삭제하시겠습니까?")
-            }
-            .onAppear {
-                viewModel.setAuthService(authService)
             }
             .task {
                 await viewModel.fetchTreatments()

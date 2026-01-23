@@ -25,10 +25,7 @@ class CalendarViewModel: ObservableObject {
     @Published var showingTreatmentPicker = false
     @Published var showingAdjustmentEdit = false
 
-    private var _authService: AuthService?
-    var authService: AuthService {
-        _authService ?? AuthService()
-    }
+    var authService: AuthService
     private let recordService = RecordService.shared
     private let adjustmentService = AdjustmentService.shared
     private let treatmentService = TreatmentService.shared
@@ -66,13 +63,9 @@ class CalendarViewModel: ObservableObject {
 
     // MARK: - Initialization
 
-    init(authService: AuthService? = nil) {
-        self._authService = authService
+    init(authService: AuthService) {
+        self.authService = authService
         setupBindings()
-    }
-
-    func setAuthService(_ service: AuthService) {
-        self._authService = service
     }
 
     // MARK: - Setup
