@@ -1737,6 +1737,215 @@ class SettingsViewModel: ObservableObject {
 
 ---
 
+#### 48. 재수정: View 분리 패턴으로 AuthService 주입 개선
+
+**문제 지속:**
+- 47번 수정 후에도 여전히 시술이 탭 간 공유되지 않음
+- `onAppear`에서 `setAuthService()` 호출 방식의 한계
+
+**원인 분석:**
+- `.task`가 `onAppear`보다 먼저 실행될 수 있음
+- `setAuthService()`가 호출되기 전에 `fetchInitialData()`가 실행됨
+- 결과: 여전히 잘못된 authService 사용
+
+**해결 방법: View 분리 패턴**
+
+**1. CalendarTabView.swift**
+```swift
+// 외부 View: EnvironmentObject만 수신
+struct CalendarTabView: View {
+    @EnvironmentObject var authService: AuthService
+
+    var body: some View {
+        CalendarTabContent(authService: authService)
+    }
+}
+
+// 내부 View: init()에서 authService로 ViewModel 생성
+private struct CalendarTabContent: View {
+    @StateObject private var viewModel: CalendarViewModel
+
+    init(authService: AuthService) {
+        _viewModel = StateObject(wrappedValue: CalendarViewModel(authService: authService))
+    }
+
+    var body: some View {
+        // 실제 UI
+    }
+}
+```
+
+**2. SettingsTabView.swift**
+- CalendarTabView와 동일한 패턴 적용
+- 외부/내부 View 분리
+
+**3. ViewModel 원상복구**
+```swift
+// CalendarViewModel.swift & SettingsViewModel.swift
+var authService: AuthService  // 단순 프로퍼티로 복원
+
+init(authService: AuthService) {  // required parameter
+    self.authService = authService
+    setupBindings()
+}
+```
+
+**장점:**
+- View 생성 시점에 authService 주입 보장
+- `@StateObject`는 View 생명주기 동안 한 번만 생성
+- 실행 순서 명확: View 생성 → init() → ViewModel 생성 → .task
+- authService가 확실히 설정된 상태로 시작
+
+---
+
+#### 49. 디버깅 로그 추가 및 문제 추적
+
+**문제 지속:**
+- 48번 수정 후에도 시술이 탭 간 공유되지 않음
+- 근본 원인 파악을 위한 디버깅 필요
+
+**추가한 로그:**
+
+**1. ViewModel 초기화 시점**
+```swift
+init(authService: AuthService) {
+    self.authService = authService
+    print("🔍 [CalendarViewModel] init - authService: \(authService), currentUser: \(authService.currentUser?.id ?? "nil")")
+    setupBindings()
+}
+```
+
+**2. 시술 추가**
+```swift
+// SettingsViewModel
+print("🔍 [SettingsViewModel] addTreatment - userId: \(userId), name: \(name)")
+
+// TreatmentService
+print("🔍 [TreatmentService] 시술 추가 시작 - userId: \(userId), name: \(name)")
+print("✅ [TreatmentService] Firestore 문서 추가 성공 - userId: \(userId), docId: \(documentId)")
+```
+
+**3. 시술 조회**
+```swift
+// SettingsViewModel & CalendarViewModel
+print("🔍 [SettingsViewModel] fetchTreatments - userId: \(userId)")
+
+// TreatmentService
+print("🔍 [TreatmentService] 시술 조회 시작 - userId: \(userId)")
+print("✅ [TreatmentService] \(treatments.count)개 시술 조회 완료 - userId: \(userId)")
+```
+
+**발견한 사실:**
+```
+로그 분석:
+✅ [TreatmentService] Firestore 문서 추가 성공 - userId: S0LmsW1S84d0L9DBMeNkUuqyO3y2
+🔍 [TreatmentService] 시술 조회 시작 - userId: S0LmsW1S84d0L9DBMeNkUuqyO3y2
+✅ [treatments] 0개 문서 조회 성공
+```
+
+- ✅ **userId는 동일함** (S0LmsW1S84d0L9DBMeNkUuqyO3y2)
+- ❌ **하지만 조회 결과는 0개**
+- 📌 **결론: Firestore 경로는 맞지만 디코딩에 문제**
+
+---
+
+#### 50. 크리티컬 버그 해결: Firestore @DocumentID 디코딩 문제
+
+**문제 발견:**
+```
+로그:
+🔍 [treatments] Firestore에서 13개 문서 가져옴
+❌ [treatments] 디코딩 실패 - docId: 6bL74LnurXg2bN3nM3rJ
+   error: decodingIsNotSupported("Could not find DocumentReference for user info key")
+   데이터: ["price": 100000, "created_at": <Timestamp>, "name": 테스트시술명, ...]
+✅ [treatments] 0개 문서 조회 성공 (총 13개 중)
+```
+
+**근본 원인:**
+- Firestore에서 **13개 문서는 정상적으로 가져옴**
+- 하지만 `@DocumentID` 디코딩 시 실패
+- `Firestore.Decoder()`는 document reference 정보 없이 `@DocumentID`를 디코딩할 수 없음
+
+**모델 구조:**
+```swift
+struct Treatment: Identifiable, Codable {
+    @DocumentID var id: String?  // ← 문제의 property wrapper
+    var name: String
+    var price: Int
+    // ...
+}
+```
+
+`@DocumentID`는:
+- Firestore의 document ID를 자동으로 모델에 매핑하는 특별한 property wrapper
+- 일반 `Firestore.Decoder()`로는 디코딩 불가능
+- Document reference 정보가 필요함
+
+**해결 방법:**
+
+**FirestoreService.swift - getDocuments & queryDocuments 메서드 수정**
+
+```swift
+// 변경 전: 수동 디코딩
+let decoder = Firestore.Decoder()
+let decoded = try decoder.decode(T.self, from: doc.data())
+
+// 변경 후: Firestore SDK 내장 메서드 사용
+let decoded = try doc.data(as: T.self)
+```
+
+**`doc.data(as:)` 메서드의 장점:**
+- ✅ `@DocumentID` 자동 처리
+- ✅ Document reference 자동 설정
+- ✅ Timestamp → Date 자동 변환
+- ✅ 모든 Firestore 타입 지원
+- ✅ field name mapping (snake_case ↔ camelCase)
+
+**수정 코드:**
+```swift
+func getDocuments<T: Decodable>(...) async throws -> [T] {
+    do {
+        let snapshot = try await query.getDocuments()
+
+        print("🔍 [\(collectionName)] Firestore에서 \(snapshot.documents.count)개 문서 가져옴")
+
+        let documents = snapshot.documents.compactMap { doc -> T? in
+            do {
+                // Firestore SDK의 내장 메서드 사용
+                let decoded = try doc.data(as: T.self)
+                return decoded
+            } catch {
+                print("❌ [\(collectionName)] 디코딩 실패 - docId: \(doc.documentID)")
+                return nil
+            }
+        }
+
+        print("✅ [\(collectionName)] \(documents.count)개 문서 조회 성공 (총 \(snapshot.documents.count)개 중)")
+        return documents
+    }
+}
+```
+
+**테스트 결과:**
+```
+✅ 이전: Firestore에서 13개 가져옴 → 0개 디코딩 성공
+✅ 이후: Firestore에서 13개 가져옴 → 13개 디코딩 성공
+```
+
+**최종 확인:**
+- ✅ 설정 탭에서 시술 추가 → Firestore에 저장됨
+- ✅ 캘린더 탭으로 이동 → 시술이 정상 표시됨
+- ✅ 다시 설정 탭으로 이동 → 시술이 유지됨
+- ✅ 모든 탭에서 동일한 데이터 공유
+
+**교훈:**
+- Firestore SDK의 `@DocumentID` property wrapper는 특별한 처리가 필요
+- 커스텀 디코딩보다 Firestore SDK의 내장 메서드(`doc.data(as:)`) 사용 권장
+- `compactMap`에서 `try?` 사용 시 에러가 조용히 무시됨 → 디버깅 로그 필수
+- Firestore 데이터 조회 시: 가져온 문서 수 ≠ 디코딩 성공 수 (에러 발생 가능)
+
+---
+
 ## 다음 단계
 
 ### 이후 계획:
@@ -1809,9 +2018,9 @@ users/{userId}/monthlyExpenses/...
 
 ## 코드 통계
 
-### Phase 3 완료 후
+### Phase 3 완료 후 (버그 수정 포함)
 - **Swift 파일**: 43개 (+10개)
-- **총 코드 라인**: 약 5,195줄 (+1,390줄)
+- **총 코드 라인**: 약 5,300줄 (+1,495줄, 디버깅 로그 포함)
 - **모델**: 6개
 - **서비스**: 7개 (AuthService + 6개 비즈니스 레이어)
   - AuthService (198줄)

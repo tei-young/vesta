@@ -94,7 +94,7 @@
 
 ---
 
-## 🟡 Priority 3: 캘린더 탭 구현 ✅ 완료
+## 🟡 Priority 3: 캘린더 탭 구현 ✅ 완료 (버그 수정 완료)
 
 ### ✅ 완료
 - [x] **3.1 CalendarViewModel.swift 생성** (279줄)
@@ -167,6 +167,29 @@
   - DayDetailSheet 표시 (날짜 선택 시)
   - 초기 데이터 로딩 (.task)
   - 월 변경 시 자동 재로드 (.onChange)
+
+### 버그 수정
+- [x] **3.11 빌드 에러 수정** (17개 에러 해결)
+  - AppColors.backgroundSecondary → AppColors.card
+  - 메서드 시그니처 불일치 수정
+  - CalendarViewModel computed property 추가
+  - Preview 파라미터 수정
+
+- [x] **3.12 코드 품질 개선** (7개 warning 해결)
+  - 사용하지 않는 변수 수정
+  - 불필요한 try 제거
+  - 클린 빌드 완료
+
+- [x] **3.13 AuthService 인스턴스 공유 문제 해결**
+  - MainTabView에서 authService 전달
+  - View 분리 패턴 적용 (외부/내부 View)
+  - ViewModel에 authService init 시점 주입
+
+- [x] **3.14 Firestore @DocumentID 디코딩 문제 해결** (크리티컬)
+  - 문제: Firestore에서 데이터는 가져오지만 디코딩 실패
+  - 원인: @DocumentID property wrapper는 특별한 처리 필요
+  - 해결: `doc.data(as: T.self)` 사용
+  - 결과: 시술 데이터 정상 조회 및 탭 간 공유 성공
 
 ---
 
