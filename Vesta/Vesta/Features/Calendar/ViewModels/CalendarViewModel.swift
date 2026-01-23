@@ -24,6 +24,7 @@ class CalendarViewModel: ObservableObject {
     @Published var showingDayDetail = false
     @Published var showingTreatmentPicker = false
     @Published var showingAdjustmentEdit = false
+    @Published var shouldShowDayDetail = false  // 날짜 선택 트리거용
 
     var authService: AuthService
     private let recordService = RecordService.shared
@@ -131,6 +132,11 @@ class CalendarViewModel: ObservableObject {
             year: currentYear,
             month: currentMonth
         )
+
+        print("🔍 [CalendarViewModel] fetchMonthlyData - \(monthlyRecords.count)개 기록 로드")
+        if !monthlyRecords.isEmpty {
+            print("   날짜들: \(monthlyRecords.map { $0.date.toISOString() }.joined(separator: ", "))")
+        }
     }
 
     func fetchDayData(for date: Date) async {
@@ -144,9 +150,10 @@ class CalendarViewModel: ObservableObject {
 
     func selectDate(_ date: Date) {
         selectedDate = date
+        // 같은 날짜를 다시 선택해도 트리거되도록
+        shouldShowDayDetail.toggle()
         Task {
             await fetchDayData(for: date)
-            showingDayDetail = true
         }
     }
 
@@ -285,7 +292,10 @@ class CalendarViewModel: ObservableObject {
     }
 
     func hasRecords(for date: Date) -> Bool {
-        monthlyRecords.contains { $0.date.startOfDay() == date.startOfDay() }
+        let hasRecord = monthlyRecords.contains { record in
+            record.date.isSameDay(as: date)
+        }
+        return hasRecord
     }
 
     func getTreatment(byId id: String) -> Treatment? {

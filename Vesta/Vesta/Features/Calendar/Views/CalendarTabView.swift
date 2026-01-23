@@ -57,12 +57,9 @@ private struct CalendarTabContent: View {
             .task {
                 await viewModel.fetchInitialData()
             }
-            .onChange(of: viewModel.selectedDate) { _, newDate in
-                // 날짜가 선택되면 해당 날짜의 데이터를 로드하고 시트 표시
-                Task {
-                    await viewModel.fetchDayData(for: newDate)
-                    showingDayDetail = true
-                }
+            .onChange(of: viewModel.shouldShowDayDetail) { _, _ in
+                // 날짜 선택 시 항상 트리거됨 (같은 날짜도 포함)
+                showingDayDetail = true
             }
             .onChange(of: viewModel.currentDate) { _, _ in
                 // 월이 변경되면 월별 데이터 다시 로드
