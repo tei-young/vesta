@@ -179,13 +179,22 @@ class FirestoreService {
 
         do {
             let snapshot = try await query.getDocuments()
-            let decoder = Firestore.Decoder()
+
+            print("🔍 [\(collectionName)] Firestore에서 \(snapshot.documents.count)개 문서 가져옴")
 
             let documents = snapshot.documents.compactMap { doc -> T? in
-                try? decoder.decode(T.self, from: doc.data())
+                do {
+                    // Firestore SDK의 내장 메서드 사용 - @DocumentID 자동 처리
+                    let decoded = try doc.data(as: T.self)
+                    return decoded
+                } catch {
+                    print("❌ [\(collectionName)] 디코딩 실패 - docId: \(doc.documentID), error: \(error)")
+                    print("   데이터: \(doc.data())")
+                    return nil
+                }
             }
 
-            print("✅ [\(collectionName)] \(documents.count)개 문서 조회 성공")
+            print("✅ [\(collectionName)] \(documents.count)개 문서 조회 성공 (총 \(snapshot.documents.count)개 중)")
             return documents
         } catch {
             print("❌ [\(collectionName)] 문서 조회 실패: \(error.localizedDescription)")
@@ -211,13 +220,22 @@ class FirestoreService {
 
         do {
             let snapshot = try await query.getDocuments()
-            let decoder = Firestore.Decoder()
+
+            print("🔍 [\(collectionName)] 쿼리로 \(snapshot.documents.count)개 문서 가져옴")
 
             let documents = snapshot.documents.compactMap { doc -> T? in
-                try? decoder.decode(T.self, from: doc.data())
+                do {
+                    // Firestore SDK의 내장 메서드 사용 - @DocumentID 자동 처리
+                    let decoded = try doc.data(as: T.self)
+                    return decoded
+                } catch {
+                    print("❌ [\(collectionName)] 디코딩 실패 - docId: \(doc.documentID), error: \(error)")
+                    print("   데이터: \(doc.data())")
+                    return nil
+                }
             }
 
-            print("✅ [\(collectionName)] 쿼리 결과 \(documents.count)개 문서 조회 성공")
+            print("✅ [\(collectionName)] 쿼리 결과 \(documents.count)개 문서 조회 성공 (총 \(snapshot.documents.count)개 중)")
             return documents
         } catch {
             print("❌ [\(collectionName)] 쿼리 실패: \(error.localizedDescription)")
