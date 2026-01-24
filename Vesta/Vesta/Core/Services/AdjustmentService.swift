@@ -81,13 +81,20 @@ class AdjustmentService: ObservableObject {
                 .whereField("date", isLessThanOrEqualTo: Timestamp(date: endDate.endOfDay()))
 
             let snapshot = try await query.getDocuments()
-            let decoder = Firestore.Decoder()
+
+            print("🔍 [AdjustmentService] Firestore에서 \(snapshot.documents.count)개 문서 가져옴 (\(year)-\(String(format: "%02d", month)))")
 
             let monthlyAdjustments = snapshot.documents.compactMap { doc -> DailyAdjustment? in
-                try? decoder.decode(DailyAdjustment.self, from: doc.data())
+                do {
+                    let decoded = try doc.data(as: DailyAdjustment.self)
+                    return decoded
+                } catch {
+                    print("❌ [AdjustmentService] 디코딩 실패 - docId: \(doc.documentID), error: \(error)")
+                    return nil
+                }
             }
 
-            print("✅ [AdjustmentService] \(monthlyAdjustments.count)개 월별 조정 조회 완료 (\(year)-\(String(format: "%02d", month)))")
+            print("✅ [AdjustmentService] \(monthlyAdjustments.count)개 월별 조정 조회 완료 (총 \(snapshot.documents.count)개 중)")
             isLoading = false
             return monthlyAdjustments
         } catch {

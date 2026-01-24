@@ -2002,6 +2002,56 @@ users/{userId}/monthlyExpenses/...
 
 ---
 
+## Phase 3 버그 수정 (2026-01-24)
+
+### 수정된 이슈
+
+#### 1. @DocumentID 디코딩 실패 문제
+**증상**: monthlyRecords가 항상 빈 배열로 반환되어 캘린더 도트가 표시되지 않음
+**원인**: RecordService와 AdjustmentService에서 `Firestore.Decoder()`를 사용하여 수동 디코딩 시도. 이 방법은 `@DocumentID` 프로퍼티 래퍼에 필요한 문서 참조 컨텍스트를 제공하지 못함.
+**해결**:
+- RecordService.fetchMonthlyRecords()를 `doc.data(as: DailyRecord.self)` 사용으로 변경
+- AdjustmentService.fetchMonthlyAdjustments()를 `doc.data(as: DailyAdjustment.self)` 사용으로 변경
+- FirestoreService는 이전에 이미 수정 완료
+**결과**: Firestore에서 가져온 문서가 정상적으로 디코딩되어 monthlyRecords에 저장됨
+
+#### 2. 시술 색상 도트 미표시 문제
+**증상**: 캘린더 날짜에 시술 색상 도트가 표시되지 않음
+**해결**:
+- CalendarViewModel에 `getTreatmentColors(for:)` 메서드 추가
+  - 해당 날짜의 모든 기록에서 시술 색상 추출
+  - 중복 제거 및 최대 3개까지 반환
+- DayCell을 `hasRecords: Bool`에서 `treatmentColors: [String]`로 변경
+- 여러 시술이 있는 경우 가로로 색상 도트 표시 (HStack, spacing: 2)
+- CalendarGridView에서 `getTreatmentColors(for:)` 호출하도록 업데이트
+**결과**: 설정에서 정한 시술 색상이 캘린더 날짜에 도트로 표시됨
+
+#### 3. 같은 날짜 재선택 시 상세화면 미표시 문제
+**증상**: 이미 선택된 날짜를 다시 클릭해도 일별 상세화면이 열리지 않음
+**원인**: SwiftUI의 `.onChange(of:)` 모디파이어는 값이 실제로 변경될 때만 트리거됨
+**해결**:
+- CalendarViewModel에 `shouldShowDayDetail` 토글 프로퍼티 추가
+- `selectDate()` 메서드에서 `shouldShowDayDetail.toggle()` 호출
+- CalendarTabView에서 `selectedDate` 대신 `shouldShowDayDetail` 관찰
+**결과**: 같은 날짜를 다시 클릭해도 항상 상세화면이 표시됨
+
+### 수정된 파일
+```
+Vesta/Core/Services/
+  - RecordService.swift (fetchMonthlyRecords 메서드)
+  - AdjustmentService.swift (fetchMonthlyAdjustments 메서드)
+
+Vesta/Features/Calendar/ViewModels/
+  - CalendarViewModel.swift (getTreatmentColors, shouldShowDayDetail 추가)
+
+Vesta/Features/Calendar/Views/
+  - DayCell.swift (treatmentColors 프로퍼티로 변경, 색상 도트 표시)
+  - CalendarGridView.swift (getTreatmentColors 호출)
+  - CalendarTabView.swift (shouldShowDayDetail 관찰)
+```
+
+---
+
 ## 성능 고려사항
 
 ### 현재 최적화

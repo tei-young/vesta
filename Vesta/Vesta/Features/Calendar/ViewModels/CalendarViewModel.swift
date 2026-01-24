@@ -298,6 +298,24 @@ class CalendarViewModel: ObservableObject {
         return hasRecord
     }
 
+    func getTreatmentColors(for date: Date) -> [String] {
+        // 해당 날짜의 모든 기록 찾기
+        let dateRecords = monthlyRecords.filter { record in
+            record.date.isSameDay(as: date)
+        }
+
+        // 각 기록의 시술 색상 가져오기
+        let colors = dateRecords.compactMap { record -> String? in
+            guard let treatment = getTreatment(byId: record.treatmentId) else {
+                return nil
+            }
+            return treatment.color
+        }
+
+        // 중복 제거하고 최대 3개까지만 반환
+        return Array(Set(colors)).prefix(3).map { $0 }
+    }
+
     func getTreatment(byId id: String) -> Treatment? {
         treatments.first { $0.id == id }
     }

@@ -13,7 +13,7 @@ struct DayCell: View {
     let date: Date?
     let isToday: Bool
     let isSelected: Bool
-    let hasRecords: Bool
+    let treatmentColors: [String]
     let onTap: () -> Void
 
     // MARK: - Body
@@ -27,11 +27,16 @@ struct DayCell: View {
                         .fontWeight(isToday ? .bold : .regular)
                         .foregroundColor(textColor)
 
-                    // 기록 있음 표시 (도트)
-                    if hasRecords {
-                        Circle()
-                            .fill(AppColors.primary)
-                            .frame(width: 4, height: 4)
+                    // 시술 색상 도트 표시
+                    if !treatmentColors.isEmpty {
+                        HStack(spacing: 2) {
+                            ForEach(treatmentColors, id: \.self) { colorHex in
+                                Circle()
+                                    .fill(Color(hex: colorHex))
+                                    .frame(width: 4, height: 4)
+                            }
+                        }
+                        .frame(height: 4)
                     } else {
                         Spacer()
                             .frame(height: 4)
@@ -83,7 +88,7 @@ struct DayCell: View {
             date: Date(),
             isToday: true,
             isSelected: false,
-            hasRecords: true,
+            treatmentColors: ["#FF6B6B", "#4ECDC4"],
             onTap: {}
         )
 
@@ -91,7 +96,7 @@ struct DayCell: View {
             date: Date(),
             isToday: false,
             isSelected: true,
-            hasRecords: false,
+            treatmentColors: ["#95E1D3"],
             onTap: {}
         )
 
@@ -99,7 +104,7 @@ struct DayCell: View {
             date: nil,
             isToday: false,
             isSelected: false,
-            hasRecords: false,
+            treatmentColors: [],
             onTap: {}
         )
     }

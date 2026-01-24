@@ -25,7 +25,7 @@ struct CalendarGridView: View {
                         date: date,
                         isToday: date.isToday(),
                         isSelected: Calendar.current.isDate(date, inSameDayAs: viewModel.selectedDate),
-                        hasRecords: viewModel.hasRecords(for: date),
+                        treatmentColors: viewModel.getTreatmentColors(for: date),
                         onTap: {
                             viewModel.selectDate(date)
                         }
@@ -35,7 +35,7 @@ struct CalendarGridView: View {
                         date: nil,
                         isToday: false,
                         isSelected: false,
-                        hasRecords: false,
+                        treatmentColors: [],
                         onTap: {}
                     )
                 }

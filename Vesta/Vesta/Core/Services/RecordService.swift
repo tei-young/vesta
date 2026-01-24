@@ -82,13 +82,20 @@ class RecordService: ObservableObject {
                 .whereField("date", isLessThanOrEqualTo: Timestamp(date: endDate.endOfDay()))
 
             let snapshot = try await query.getDocuments()
-            let decoder = Firestore.Decoder()
+
+            print("🔍 [RecordService] Firestore에서 \(snapshot.documents.count)개 문서 가져옴 (\(year)-\(String(format: "%02d", month)))")
 
             let monthlyRecords = snapshot.documents.compactMap { doc -> DailyRecord? in
-                try? decoder.decode(DailyRecord.self, from: doc.data())
+                do {
+                    let decoded = try doc.data(as: DailyRecord.self)
+                    return decoded
+                } catch {
+                    print("❌ [RecordService] 디코딩 실패 - docId: \(doc.documentID), error: \(error)")
+                    return nil
+                }
             }
 
-            print("✅ [RecordService] \(monthlyRecords.count)개 월별 기록 조회 완료 (\(year)-\(String(format: "%02d", month)))")
+            print("✅ [RecordService] \(monthlyRecords.count)개 월별 기록 조회 완료 (총 \(snapshot.documents.count)개 중)")
             isLoading = false
             return monthlyRecords
         } catch {
