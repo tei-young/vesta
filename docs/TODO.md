@@ -1,6 +1,6 @@
 # TODO - Vesta iOS 개발 계획
 
-> 최종 업데이트: 2026-01-23
+> 최종 업데이트: 2026-01-25
 
 ## 우선순위별 개발 계획
 
@@ -211,13 +211,17 @@
 
 ---
 
-## 🟢 Priority 4: 결산 탭 구현
+## 🟢 Priority 4: 결산 탭 구현 (2026-01-25 시작)
 
 ### 결산 UI
-- [ ] **4.1 SettlementViewModel.swift 생성**
+- [x] **4.1 SettlementViewModel.swift 생성** (2026-01-25 완료)
   - 월별 매출/지출 데이터 관리
-  - 순이익 계산
-  - RecordService, ExpenseService 연동
+  - 순이익 계산 (totalRevenue - totalExpense)
+  - RecordService, AdjustmentService, ExpenseService, CategoryService, TreatmentService 연동
+  - 시술별 매출 분석 (revenueByTreatment)
+  - 전월 지출 복사 기능 (copyExpensesFromPreviousMonth)
+  - Combine으로 서비스 상태 구독
+  - 병렬 데이터 조회로 성능 최적화
 
 - [ ] **4.2 RevenueCard.swift 구현**
   - 월 매출 카드 UI

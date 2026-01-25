@@ -1,6 +1,7 @@
 # Development Log - Vesta iOS
 
 > 개발 진행 상황 및 구현 이력
+> 최종 업데이트: 2026-01-25
 
 ---
 
@@ -2052,6 +2053,63 @@ Vesta/Features/Calendar/Views/
 
 ---
 
+## Phase 4: 결산 탭 구현 (2026-01-25 시작)
+
+### 4.1 SettlementViewModel.swift 생성 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/ViewModels/SettlementViewModel.swift` (약 280줄)
+
+#### 주요 기능
+
+**1. 서비스 연동**
+- RecordService: 월별 시술 기록 조회
+- AdjustmentService: 월별 조정 금액 조회
+- ExpenseService: 월별 지출 관리
+- CategoryService: 지출 카테고리 관리
+- TreatmentService: 시술 정보 (시술별 매출 분석용)
+
+**2. @Published 프로퍼티**
+```swift
+@Published var currentDate: Date
+@Published var monthlyRecords: [DailyRecord]
+@Published var monthlyAdjustments: [DailyAdjustment]
+@Published var expenses: [MonthlyExpense]
+@Published var categories: [ExpenseCategory]
+@Published var treatments: [Treatment]
+```
+
+**3. Computed Properties**
+- `totalRevenue`: 총 매출 (시술 기록 + 조정 금액)
+- `totalExpense`: 총 지출
+- `netProfit`: 순이익 (매출 - 지출)
+- `revenueByTreatment`: 시술별 매출 분석 [(treatmentId, name, color, amount)]
+  - 금액 내림차순 정렬
+  - RevenueCard UI에서 사용
+
+**4. 주요 메서드**
+- `fetchMonthlyData()`: 월별 데이터 조회 (병렬 처리로 최적화)
+- `navigateToPreviousMonth()`, `navigateToNextMonth()`, `navigateToCurrentMonth()`: 월 네비게이션
+- `getExpenseAmount(for:)`: 카테고리별 지출 금액 조회
+- `updateExpense(categoryId:amount:)`: 지출 추가/수정 (upsert)
+- `copyExpensesFromPreviousMonth()`: 전월 지출 복사 기능
+
+**5. Combine 구독**
+- ExpenseService, CategoryService, TreatmentService의 데이터 변경사항을 자동으로 구독
+- 서비스에서 데이터 변경 시 ViewModel 자동 업데이트
+
+#### 기술적 특징
+- CalendarViewModel과 동일한 패턴 사용 (일관성)
+- async/await로 병렬 데이터 조회 (성능 최적화)
+- Combine으로 서비스 상태 실시간 반영
+- 디버깅 로그 포함
+
+#### 다음 단계
+- RevenueCard.swift: 월 매출 카드 UI (시술별 매출 표시)
+- ExpenseSection.swift: 지출 관리 섹션
+- 기타 결산 탭 UI 컴포넌트들
+
+---
+
 ## 성능 고려사항
 
 ### 현재 최적화
@@ -2100,3 +2158,11 @@ Vesta/Features/Calendar/Views/
   - EmojiTextField (53줄)
 - **Extensions**: 4개 (Date+Formatting에 endOfDay() 추가)
 - **Constants**: 3개
+
+### Phase 4 시작 (2026-01-25)
+- **Swift 파일**: 44개 (+1개)
+- **총 코드 라인**: 약 5,580줄 (+280줄)
+- **ViewModel**: 3개 (+1개)
+  - SettingsViewModel (131줄)
+  - CalendarViewModel (279줄)
+  - SettlementViewModel (280줄) ← 신규
