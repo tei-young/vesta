@@ -83,7 +83,7 @@ class SettlementViewModel: ObservableObject {
         }
 
         // 금액 내림차순 정렬
-        return result.sorted { $0.amount > $1.amount }
+        return result.sorted { $0.3 > $1.3 }
     }
 
     // MARK: - Initialization
@@ -122,7 +122,7 @@ class SettlementViewModel: ObservableObject {
 
     /// 월별 데이터 조회 (매출, 지출, 카테고리, 시술)
     func fetchMonthlyData() async {
-        guard let userId = authService.currentUser?.uid else {
+        guard let userId = authService.currentUser?.id else {
             print("❌ [SettlementViewModel] userId가 없습니다.")
             return
         }
@@ -198,7 +198,7 @@ class SettlementViewModel: ObservableObject {
 
     /// 지출 추가/업데이트
     func updateExpense(categoryId: String, amount: Int) async {
-        guard let userId = authService.currentUser?.uid else {
+        guard let userId = authService.currentUser?.id else {
             print("❌ [SettlementViewModel] userId가 없습니다.")
             return
         }
@@ -224,7 +224,7 @@ class SettlementViewModel: ObservableObject {
 
     /// 전월 지출 복사
     func copyExpensesFromPreviousMonth() async {
-        guard let userId = authService.currentUser?.uid else {
+        guard let userId = authService.currentUser?.id else {
             print("❌ [SettlementViewModel] userId가 없습니다.")
             return
         }
