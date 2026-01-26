@@ -39,12 +39,60 @@ struct RevenueCard: View {
             Divider()
                 .background(AppColors.divider)
 
-            // TODO: 시술별 매출 리스트 (다음 단계에서 구현)
+            // 시술별 매출 리스트
+            if revenueByTreatment.isEmpty {
+                // 빈 상태
+                Text("시술 기록이 없습니다")
+                    .font(.subheadline)
+                    .foregroundColor(AppColors.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(revenueByTreatment, id: \.treatmentId) { item in
+                        TreatmentRevenueRow(
+                            name: item.name,
+                            color: item.color,
+                            amount: item.amount
+                        )
+                    }
+                }
+            }
         }
         .padding()
         .background(AppColors.card)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+}
+
+// MARK: - Treatment Revenue Row
+
+private struct TreatmentRevenueRow: View {
+    let name: String
+    let color: String
+    let amount: Int
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // 시술 색상 원형
+            Circle()
+                .fill(Color(hex: color))
+                .frame(width: 12, height: 12)
+
+            // 시술명
+            Text(name)
+                .font(.subheadline)
+                .foregroundColor(AppColors.textPrimary)
+
+            Spacer()
+
+            // 금액
+            Text(amount.formattedCurrency)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(AppColors.textSecondary)
+        }
     }
 }
 
