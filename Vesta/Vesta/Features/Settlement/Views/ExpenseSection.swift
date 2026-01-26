@@ -126,28 +126,19 @@ struct ExpenseSection: View {
     ExpenseSection(
         categories: [
             ExpenseCategory(
-                id: "1",
                 name: "재료비",
                 icon: "💇",
-                order: 0,
-                createdAt: Date(),
-                updatedAt: Date()
+                order: 0
             ),
             ExpenseCategory(
-                id: "2",
                 name: "임대료",
                 icon: "🏠",
-                order: 1,
-                createdAt: Date(),
-                updatedAt: Date()
+                order: 1
             ),
             ExpenseCategory(
-                id: "3",
                 name: "인건비",
                 icon: "👤",
-                order: 2,
-                createdAt: Date(),
-                updatedAt: Date()
+                order: 2
             )
         ],
         getExpenseAmount: { categoryId in

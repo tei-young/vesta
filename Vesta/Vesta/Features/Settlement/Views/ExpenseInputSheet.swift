@@ -154,12 +154,9 @@ private struct QuickAmountButton: View {
 #Preview {
     ExpenseInputSheet(
         category: ExpenseCategory(
-            id: "1",
             name: "재료비",
             icon: "💇",
-            order: 0,
-            createdAt: Date(),
-            updatedAt: Date()
+            order: 0
         ),
         currentAmount: 500000,
         onSave: { amount in

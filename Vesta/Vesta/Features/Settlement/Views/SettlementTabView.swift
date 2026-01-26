@@ -187,7 +187,6 @@ private struct SettlementTabContent: View {
             var updated = editing
             updated.name = name
             updated.icon = icon
-            updated.updatedAt = Date()
 
             do {
                 try await CategoryService.shared.updateCategory(updated, userId: userId)
@@ -229,5 +228,5 @@ private struct SettlementTabContent: View {
 
 #Preview {
     SettlementTabView()
-        .environmentObject(AuthService.shared)
+        .environmentObject(AuthService())
 }

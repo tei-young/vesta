@@ -21,7 +21,7 @@ struct ExpenseRow: View {
     var body: some View {
         HStack(spacing: 12) {
             // 이모지 아이콘
-            Text(category.icon)
+            Text(category.icon ?? "📋")
                 .font(.title2)
                 .frame(width: 40, height: 40)
 
@@ -82,12 +82,9 @@ struct ExpenseRow: View {
     VStack(spacing: 16) {
         ExpenseRow(
             category: ExpenseCategory(
-                id: "1",
                 name: "재료비",
                 icon: "💇",
-                order: 0,
-                createdAt: Date(),
-                updatedAt: Date()
+                order: 0
             ),
             amount: 500000,
             onEdit: {},
@@ -97,12 +94,9 @@ struct ExpenseRow: View {
 
         ExpenseRow(
             category: ExpenseCategory(
-                id: "2",
                 name: "임대료",
                 icon: "🏠",
-                order: 1,
-                createdAt: Date(),
-                updatedAt: Date()
+                order: 1
             ),
             amount: 0,
             onEdit: {},
