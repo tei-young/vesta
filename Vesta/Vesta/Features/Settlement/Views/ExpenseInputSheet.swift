@@ -45,7 +45,7 @@ struct ExpenseInputSheet: View {
             VStack(spacing: 24) {
                 // 카테고리 정보
                 VStack(spacing: 12) {
-                    Text(category.icon)
+                    Text(category.icon ?? "📋")
                         .font(.system(size: 60))
 
                     Text(category.name)
