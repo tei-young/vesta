@@ -2103,10 +2103,141 @@ Vesta/Features/Calendar/Views/
 - Combine으로 서비스 상태 실시간 반영
 - 디버깅 로그 포함
 
-#### 다음 단계
-- RevenueCard.swift: 월 매출 카드 UI (시술별 매출 표시)
-- ExpenseSection.swift: 지출 관리 섹션
-- 기타 결산 탭 UI 컴포넌트들
+### 4.2 RevenueCard.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/RevenueCard.swift` (약 70줄)
+
+- 월 매출 카드 UI
+- 총 매출 표시 (primary 색상 강조)
+- 시술별 매출 리스트
+  - 시술 색상 원형 (12x12)
+  - 시술명 + 금액
+  - TreatmentRevenueRow 컴포넌트 (private)
+- 빈 상태 처리 ("시술 기록이 없습니다")
+
+### 4.3 ExpenseSection.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/ExpenseSection.swift` (약 170줄)
+
+- 지출 관리 섹션 카드 UI
+- 헤더: "지출" + 카테고리 추가 버튼
+- "이전 달 불러오기" 버튼
+- 카테고리별 지출 리스트 (ExpenseRow 사용)
+- 총 지출 표시
+- 빈 상태 메시지
+
+### 4.4 ExpenseRow.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/ExpenseRow.swift` (약 120줄)
+
+- 지출 카테고리 행 UI
+- 이모지 아이콘 (40x40) + 카테고리명
+- 금액 버튼 (탭하여 수정)
+  - 금액 입력됨: 금액 표시
+  - 금액 미입력: "입력" 텍스트
+- Menu 버튼 (ellipsis)
+  - 카테고리 수정
+  - 카테고리 삭제 (destructive)
+
+### 4.5 ProfitCard.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/ProfitCard.swift` (약 170줄)
+
+- 순이익 카드 UI
+- 매출 - 지출 = 순이익 구조
+- 흑자/적자 자동 구분
+  - **흑자**: 청록색 (#4ECDC4), arrow.up.circle.fill, "흑자" 레이블
+  - **적자**: 빨간색 (#FF6B6B), arrow.down.circle.fill, "적자" 레이블
+  - **손익 0**: 회색, minus.circle.fill
+- Computed Properties: isProfit, profitColor, profitIcon, profitLabel
+
+### 4.6 CategoryEditSheet.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/CategoryEditSheet.swift` (약 115줄)
+
+- 지출 카테고리 추가/수정 바텀 시트
+- Form 기반 UI
+- 카테고리명 입력 필드
+- 이모지 선택 (EmojiTextField 재사용)
+- 미리보기 섹션 (입력 시 실시간 표시)
+- 유효성 검사 (카테고리명 + 아이콘 필수)
+- async 콜백 (onSave)
+
+### 4.7 ExpenseInputSheet.swift 구현 (2026-01-25)
+
+**파일 생성**: `Vesta/Features/Settlement/Views/ExpenseInputSheet.swift` (약 180줄)
+
+- 지출 금액 입력 바텀 시트
+- 카테고리 정보 표시 (이모지 60pt + 카테고리명)
+- 금액 입력 필드
+  - 큰 폰트 (48pt, bold)
+  - 숫자 전용 키패드
+  - Primary 색상 강조
+- 실시간 천 단위 구분자 미리보기
+- 빠른 입력 버튼 (10만원, 50만원, 100만원)
+- QuickAmountButton 컴포넌트 (private)
+
+### 4.8 "이전 달 불러오기" 기능 구현 (2026-01-25)
+
+**구현 위치**: `SettlementTabView.swift`
+
+- Alert 다이얼로그로 확인 받기
+- SettlementViewModel.copyExpensesFromPreviousMonth() 호출
+- ExpenseService.copyFromPreviousMonth 활용
+- 중복 카테고리 자동 건너뛰기
+- 복사 후 데이터 자동 갱신
+
+```swift
+.alert("이전 달 불러오기", isPresented: $showingCopyConfirmation) {
+    Button("취소", role: .cancel) {}
+    Button("불러오기") {
+        Task {
+            await viewModel.copyExpensesFromPreviousMonth()
+        }
+    }
+} message: {
+    Text("전월 지출 데이터를 현재 월로 복사합니다.\n이미 존재하는 카테고리는 건너뜁니다.")
+}
+```
+
+### 4.9 SettlementTabView 완성 (2026-01-25)
+
+**파일 업데이트**: `Vesta/Features/Settlement/Views/SettlementTabView.swift` (약 235줄)
+
+**완성된 기능**:
+1. **화면 구성** (ScrollView)
+   - 월 헤더 (이전/다음 네비게이션)
+   - RevenueCard: 총 매출 + 시술별 매출
+   - ExpenseSection: 지출 카테고리 관리
+   - ProfitCard: 순이익 표시
+
+2. **Sheet 관리**
+   - CategoryEditSheet: 카테고리 추가/수정
+   - ExpenseInputSheet: 지출 금액 입력
+   - Alert: "이전 달 불러오기" 확인
+
+3. **데이터 로딩**
+   - `.task`: 초기 로딩
+   - `.onChange(of: currentDate)`: 월 변경 시 재조회
+   - `.overlay`: 로딩 인디케이터
+
+4. **CRUD 작업**
+   - saveCategory(): 카테고리 추가/수정
+   - deleteCategory(): 카테고리 삭제
+   - saveExpense(): 지출 금액 저장
+
+5. **View 분리 패턴**
+   - 외부: EnvironmentObject 수신
+   - 내부: StateObject로 ViewModel 생성
+
+**사용 가능한 기능**:
+- ✅ 월별 매출 조회 (캘린더 데이터 기반)
+- ✅ 시술별 매출 분석
+- ✅ 지출 카테고리 관리 (CRUD)
+- ✅ 카테고리별 지출 금액 입력
+- ✅ 전월 지출 불러오기
+- ✅ 순이익 자동 계산 (흑자/적자)
+- ✅ 월 네비게이션
 
 ---
 
@@ -2166,3 +2297,21 @@ Vesta/Features/Calendar/Views/
   - SettingsViewModel (131줄)
   - CalendarViewModel (279줄)
   - SettlementViewModel (280줄) ← 신규
+
+### Phase 4 완료 (2026-01-25) ✅
+- **Swift 파일**: 50개 (+6개)
+- **총 코드 라인**: 약 6,920줄 (+1,340줄)
+- **ViewModel**: 3개
+  - SettingsViewModel (131줄)
+  - CalendarViewModel (279줄)
+  - SettlementViewModel (280줄)
+- **뷰**: 30개 (+7개)
+  - 기존 23개
+  - **결산 탭 (7개)**:
+    - SettlementTabView (235줄)
+    - RevenueCard (70줄)
+    - ExpenseSection (170줄)
+    - ExpenseRow (120줄)
+    - ProfitCard (170줄)
+    - CategoryEditSheet (115줄)
+    - ExpenseInputSheet (180줄)

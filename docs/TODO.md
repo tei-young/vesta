@@ -211,7 +211,7 @@
 
 ---
 
-## 🟢 Priority 4: 결산 탭 구현 (2026-01-25 시작)
+## 🟢 Priority 4: 결산 탭 구현 ✅ 완료 (2026-01-25)
 
 ### 결산 UI
 - [x] **4.1 SettlementViewModel.swift 생성** (2026-01-25 완료)
@@ -223,43 +223,60 @@
   - Combine으로 서비스 상태 구독
   - 병렬 데이터 조회로 성능 최적화
 
-- [ ] **4.2 RevenueCard.swift 구현**
+- [x] **4.2 RevenueCard.swift 구현** (2026-01-25 완료)
   - 월 매출 카드 UI
-  - 시술별 매출 합계
+  - 시술별 매출 리스트 (색상 원형 + 시술명 + 금액)
+  - 빈 상태 처리
+  - TreatmentRevenueRow 컴포넌트
 
-- [ ] **4.3 ExpenseSection.swift 구현**
+- [x] **4.3 ExpenseSection.swift 구현** (2026-01-25 완료)
   - 지출 관리 섹션
-  - 카테고리별 지출 표시
+  - 카테고리 추가 버튼
+  - "이전 달 불러오기" 버튼
+  - 카테고리별 지출 표시 (ExpenseRow 사용)
+  - 총 지출 표시
 
-- [ ] **4.4 ExpenseRow.swift 구현**
+- [x] **4.4 ExpenseRow.swift 구현** (2026-01-25 완료)
   - 지출 카테고리 행 UI
-  - 금액 입력 버튼
-  - 카테고리 수정/삭제 버튼
+  - 이모지 + 카테고리명 표시
+  - 금액 입력 버튼 (탭하여 수정)
+  - Menu 버튼 (카테고리 수정/삭제)
 
-- [ ] **4.5 ProfitCard.swift 구현**
+- [x] **4.5 ProfitCard.swift 구현** (2026-01-25 완료)
   - 순이익 카드 UI
-  - 흑자/적자 구분 표시
+  - 매출 - 지출 = 순이익 구조
+  - 흑자/적자 자동 구분 (색상, 아이콘, 레이블)
+  - 흑자: 청록색, 위쪽 화살표
+  - 적자: 빨간색, 아래쪽 화살표
 
-- [ ] **4.6 CategoryEditSheet.swift 구현**
+- [x] **4.6 CategoryEditSheet.swift 구현** (2026-01-25 완료)
   - 지출 카테고리 추가/수정 바텀 시트
   - 카테고리명 입력
-  - 이모지 선택
+  - 이모지 선택 (EmojiTextField 재사용)
+  - 미리보기 섹션
 
-- [ ] **4.7 ExpenseInputSheet.swift 구현**
+- [x] **4.7 ExpenseInputSheet.swift 구현** (2026-01-25 완료)
   - 지출 금액 입력 바텀 시트
-  - 숫자 키패드
-  - 천 단위 구분자 표시
+  - 숫자 전용 키패드
+  - 천 단위 구분자 실시간 표시
+  - 빠른 입력 버튼 (10만원, 50만원, 100만원)
+  - QuickAmountButton 컴포넌트
 
 ### 결산 기능
-- [ ] **4.8 "이전 달 불러오기" 기능 구현**
+- [x] **4.8 "이전 달 불러오기" 기능 구현** (2026-01-25 완료)
   - 전월 지출 데이터 복사
-  - 확인 다이얼로그
-  - 로딩 인디케이터
+  - 확인 Alert 다이얼로그
+  - ExpenseService.copyFromPreviousMonth 활용
+  - 중복 카테고리 자동 건너뛰기
 
-- [ ] **4.9 SettlementTabView 완성**
-  - ViewModel 연동
-  - 모든 하위 컴포넌트 통합
-  - 데이터 흐름 테스트
+- [x] **4.9 SettlementTabView 완성** (2026-01-25 완료)
+  - ViewModel 연동 (View 분리 패턴)
+  - 모든 하위 컴포넌트 통합 (RevenueCard, ExpenseSection, ProfitCard)
+  - 월 네비게이션 (이전/다음)
+  - Sheet 관리 (CategoryEdit, ExpenseInput)
+  - 데이터 자동 로딩 (.task, .onChange)
+  - 로딩 인디케이터 (ProgressView overlay)
+  - CRUD 작업 (카테고리 추가/수정/삭제, 지출 입력)
 
 ---
 
