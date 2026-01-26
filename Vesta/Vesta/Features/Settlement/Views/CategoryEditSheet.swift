@@ -38,7 +38,7 @@ struct CategoryEditSheet: View {
 
         if let category = editingCategory {
             _name = State(initialValue: category.name)
-            _icon = State(initialValue: category.icon)
+            _icon = State(initialValue: category.icon ?? "")
         }
     }
 
