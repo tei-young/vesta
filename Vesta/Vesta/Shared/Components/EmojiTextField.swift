@@ -21,8 +21,6 @@ struct EmojiTextField: View {
         HStack(spacing: 12) {
             EmojiTextFieldRepresentable(text: $text, placeholder: placeholder)
                 .frame(width: 80, height: 80)
-                .background(AppColors.background)
-                .cornerRadius(12)
 
             if !text.isEmpty {
                 Button(action: {
@@ -50,10 +48,21 @@ struct EmojiTextFieldRepresentable: UIViewRepresentable {
         textField.font = UIFont.systemFont(ofSize: 40)
         textField.textAlignment = .center
         textField.borderStyle = .none
-        textField.backgroundColor = .clear
 
-        // 자동으로 이모지 키보드를 선호하도록 설정
+        // 배경색 설정 (AppColors.background = #FEFAF7)
+        textField.backgroundColor = UIColor(red: 254/255, green: 250/255, blue: 247/255, alpha: 1.0)
+
+        // 둥근 모서리
+        textField.layer.cornerRadius = 12
+        textField.clipsToBounds = true
+
+        // 터치 활성화
+        textField.isUserInteractionEnabled = true
+
+        // 키보드 관련 설정
         textField.textContentType = .none
+        textField.autocorrectionType = .no
+        textField.autocapitalizationType = .none
 
         return textField
     }
