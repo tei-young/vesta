@@ -76,8 +76,14 @@ struct TreatmentEditSheet: View {
                 }
 
                 // 아이콘 선택
-                Section("아이콘 (선택)") {
-                    EmojiTextField(text: $icon, placeholder: "💅")
+                Section {
+                    EmojiTextField(text: $icon, placeholder: "아이콘")
+                } header: {
+                    Text("아이콘 (선택)")
+                } footer: {
+                    Text("이모지나 짧은 텍스트를 입력하세요")
+                        .font(.caption)
+                        .foregroundColor(AppColors.textSecondary)
                 }
 
                 // 색상 선택

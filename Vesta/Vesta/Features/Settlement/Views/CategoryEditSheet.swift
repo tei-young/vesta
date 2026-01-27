@@ -53,8 +53,14 @@ struct CategoryEditSheet: View {
                 }
 
                 // 아이콘 선택
-                Section("아이콘") {
-                    EmojiTextField(text: $icon, placeholder: "💇")
+                Section {
+                    EmojiTextField(text: $icon, placeholder: "아이콘")
+                } header: {
+                    Text("아이콘 (이모지 또는 텍스트)")
+                } footer: {
+                    Text("이모지나 짧은 텍스트를 입력하세요 (최대 10글자)")
+                        .font(.caption)
+                        .foregroundColor(AppColors.textSecondary)
                 }
 
                 // 미리보기
