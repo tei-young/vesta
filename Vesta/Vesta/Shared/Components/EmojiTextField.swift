@@ -7,20 +7,36 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct EmojiTextField: View {
     // MARK: - Properties
 
     @Binding var text: String
     let placeholder: String
+    @FocusState private var isFocused: Bool
 
     // MARK: - Body
 
     var body: some View {
         HStack(spacing: 12) {
-            EmojiTextFieldRepresentable(text: $text, placeholder: placeholder)
+            TextField(placeholder, text: $text)
+                .font(.system(size: 40))
+                .multilineTextAlignment(.center)
                 .frame(width: 80, height: 80)
+                .background(AppColors.background)
+                .cornerRadius(12)
+                .focused($isFocused)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .onChange(of: text) { oldValue, newValue in
+                    // 최대 10글자 제한
+                    if newValue.count > 10 {
+                        text = String(newValue.prefix(10))
+                    }
+                }
+                .onTapGesture {
+                    isFocused = true
+                }
 
             if !text.isEmpty {
                 Button(action: {
@@ -31,73 +47,6 @@ struct EmojiTextField: View {
                         .font(.title2)
                 }
             }
-        }
-    }
-}
-
-// MARK: - UIViewRepresentable
-
-struct EmojiTextFieldRepresentable: UIViewRepresentable {
-    @Binding var text: String
-    let placeholder: String
-
-    func makeUIView(context: Context) -> UITextField {
-        let textField = UITextField()
-        textField.delegate = context.coordinator
-        textField.placeholder = placeholder
-        textField.font = UIFont.systemFont(ofSize: 40)
-        textField.textAlignment = .center
-        textField.borderStyle = .none
-
-        // 배경색 설정 (AppColors.background = #FEFAF7)
-        textField.backgroundColor = UIColor(red: 254/255, green: 250/255, blue: 247/255, alpha: 1.0)
-
-        // 둥근 모서리
-        textField.layer.cornerRadius = 12
-        textField.clipsToBounds = true
-
-        // 터치 활성화
-        textField.isUserInteractionEnabled = true
-
-        // 키보드 관련 설정
-        textField.textContentType = .none
-        textField.autocorrectionType = .no
-        textField.autocapitalizationType = .none
-
-        return textField
-    }
-
-    func updateUIView(_ uiView: UITextField, context: Context) {
-        uiView.text = text
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, UITextFieldDelegate {
-        var parent: EmojiTextFieldRepresentable
-
-        init(_ parent: EmojiTextFieldRepresentable) {
-            self.parent = parent
-        }
-
-        func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-            let currentText = textField.text ?? ""
-            guard let stringRange = Range(range, in: currentText) else { return false }
-            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-
-            // 최대 10글자 제한 (이모지나 텍스트 모두 허용)
-            if updatedText.count <= 10 {
-                parent.text = updatedText
-                return true
-            }
-
-            return false
-        }
-
-        func textFieldDidEndEditing(_ textField: UITextField) {
-            parent.text = textField.text ?? ""
         }
     }
 }
