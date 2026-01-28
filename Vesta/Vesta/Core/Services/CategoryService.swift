@@ -64,10 +64,7 @@ class CategoryService: ObservableObject {
         icon: String?,
         userId: String
     ) async throws -> String {
-        print("🔍 [CategoryService] addCategory 시작")
-        print("   - name: \(name)")
-        print("   - icon: \(icon ?? "nil")")
-        print("   - userId: \(userId)")
+        print("🔍 [CategoryService] addCategory 시작 - name: \(name), icon: \(icon ?? "nil")")
 
         isLoading = true
         errorMessage = nil

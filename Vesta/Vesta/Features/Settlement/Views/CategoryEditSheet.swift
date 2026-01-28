@@ -91,11 +91,11 @@ struct CategoryEditSheet: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("저장") {
-                        let savedName = name
-                        let savedIcon = icon
-                        dismiss()
                         Task { @MainActor in
-                            await onSave(savedName, savedIcon)
+                            // 먼저 저장 (이 시점에 name, icon은 안전)
+                            await onSave(name, icon)
+                            // 저장 완료 후 dismiss
+                            dismiss()
                         }
                     }
                     .disabled(!isValid)
