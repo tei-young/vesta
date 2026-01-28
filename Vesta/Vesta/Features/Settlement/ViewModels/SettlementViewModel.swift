@@ -282,8 +282,11 @@ class SettlementViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
+        // 빈 문자열은 nil로 변환
+        let iconValue = icon.isEmpty ? nil : icon
+
         do {
-            try await categoryService.addCategory(name: name, icon: icon, userId: userId)
+            try await categoryService.addCategory(name: name, icon: iconValue, userId: userId)
             await categoryService.fetchCategories(userId: userId)
             print("✅ [SettlementViewModel] 카테고리 추가 완료: \(name)")
         } catch {
@@ -307,7 +310,7 @@ class SettlementViewModel: ObservableObject {
 
         var updated = category
         updated.name = name
-        updated.icon = icon
+        updated.icon = icon.isEmpty ? nil : icon
 
         do {
             try await categoryService.updateCategory(updated, userId: userId)

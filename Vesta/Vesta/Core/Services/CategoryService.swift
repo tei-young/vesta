@@ -64,6 +64,11 @@ class CategoryService: ObservableObject {
         icon: String?,
         userId: String
     ) async throws -> String {
+        print("🔍 [CategoryService] addCategory 시작")
+        print("   - name: \(name)")
+        print("   - icon: \(icon ?? "nil")")
+        print("   - userId: \(userId)")
+
         isLoading = true
         errorMessage = nil
 
@@ -71,13 +76,16 @@ class CategoryService: ObservableObject {
         let maxOrder = categories.map { $0.order }.max() ?? -1
         let newOrder = maxOrder + 1
 
-        let now = Date()
+        print("🔍 [CategoryService] ExpenseCategory 생성 직전")
+        print("   - newOrder: \(newOrder)")
+
         var newCategory = ExpenseCategory(
             name: name,
             icon: icon,
-            order: newOrder,
-            createdAt: now
+            order: newOrder
         )
+
+        print("✅ [CategoryService] ExpenseCategory 생성 완료")
 
         do {
             let documentId = try await firestoreService.addDocument(
