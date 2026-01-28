@@ -46,18 +46,11 @@ struct CategoryEditSheet: View {
     // MARK: - Methods
 
     private func saveAndDismiss() {
-        // 값을 안전하게 로컬 변수로 복사 (메모리 안전)
-        let nameValue = String(name)
-        let iconValue = String(icon)
-
         isSaving = true
 
-        // dismiss를 먼저 호출 (View는 즉시 닫히지 않음)
-        dismiss()
-
-        // 그 다음 비동기 저장 (복사된 값 사용)
-        Task.detached {
-            await onSave(nameValue, iconValue)
+        Task { @MainActor in
+            await onSave(name, icon)  // 저장 먼저 완료
+            dismiss()                  // 완료 후 dismiss
         }
     }
 
