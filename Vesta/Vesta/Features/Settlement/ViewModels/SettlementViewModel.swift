@@ -269,4 +269,78 @@ class SettlementViewModel: ObservableObject {
     func getCategory(byId id: String) -> ExpenseCategory? {
         categories.first { $0.id == id }
     }
+
+    // MARK: - Category Management
+
+    /// 카테고리 추가
+    func addCategory(name: String, icon: String) async {
+        guard let userId = authService.currentUser?.id else {
+            print("❌ [SettlementViewModel] userId가 없습니다.")
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await categoryService.addCategory(name: name, icon: icon, userId: userId)
+            await categoryService.fetchCategories(userId: userId)
+            print("✅ [SettlementViewModel] 카테고리 추가 완료: \(name)")
+        } catch {
+            errorMessage = "카테고리 추가 실패: \(error.localizedDescription)"
+            print("❌ [SettlementViewModel] 카테고리 추가 실패: \(error)")
+        }
+
+        isLoading = false
+    }
+
+    /// 카테고리 수정
+    func updateCategory(_ category: ExpenseCategory, name: String, icon: String) async {
+        guard let userId = authService.currentUser?.id,
+              let categoryId = category.id else {
+            print("❌ [SettlementViewModel] userId 또는 categoryId가 없습니다.")
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        var updated = category
+        updated.name = name
+        updated.icon = icon
+
+        do {
+            try await categoryService.updateCategory(updated, userId: userId)
+            await categoryService.fetchCategories(userId: userId)
+            print("✅ [SettlementViewModel] 카테고리 수정 완료: \(name)")
+        } catch {
+            errorMessage = "카테고리 수정 실패: \(error.localizedDescription)"
+            print("❌ [SettlementViewModel] 카테고리 수정 실패: \(error)")
+        }
+
+        isLoading = false
+    }
+
+    /// 카테고리 삭제
+    func deleteCategory(_ category: ExpenseCategory) async {
+        guard let userId = authService.currentUser?.id,
+              let categoryId = category.id else {
+            print("❌ [SettlementViewModel] userId 또는 categoryId가 없습니다.")
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        do {
+            try await categoryService.deleteCategory(id: categoryId, userId: userId)
+            await categoryService.fetchCategories(userId: userId)
+            print("✅ [SettlementViewModel] 카테고리 삭제 완료")
+        } catch {
+            errorMessage = "카테고리 삭제 실패: \(error.localizedDescription)"
+            print("❌ [SettlementViewModel] 카테고리 삭제 실패: \(error)")
+        }
+
+        isLoading = false
+    }
 }

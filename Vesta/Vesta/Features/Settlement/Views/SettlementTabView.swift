@@ -178,45 +178,17 @@ private struct SettlementTabContent: View {
     // MARK: - Actions
 
     private func saveCategory(name: String, icon: String) async {
-        guard let userId = viewModel.authService.currentUser?.id else {
-            return
-        }
-
-        if let editing = editingCategory, let categoryId = editing.id {
+        if let editing = editingCategory {
             // 수정
-            var updated = editing
-            updated.name = name
-            updated.icon = icon
-
-            do {
-                try await CategoryService.shared.updateCategory(updated, userId: userId)
-                await CategoryService.shared.fetchCategories(userId: userId)
-            } catch {
-                print("❌ 카테고리 수정 실패: \(error)")
-            }
+            await viewModel.updateCategory(editing, name: name, icon: icon)
         } else {
             // 추가
-            do {
-                try await CategoryService.shared.addCategory(name: name, icon: icon, userId: userId)
-                await CategoryService.shared.fetchCategories(userId: userId)
-            } catch {
-                print("❌ 카테고리 추가 실패: \(error)")
-            }
+            await viewModel.addCategory(name: name, icon: icon)
         }
     }
 
     private func deleteCategory(_ category: ExpenseCategory) async {
-        guard let userId = viewModel.authService.currentUser?.id,
-              let categoryId = category.id else {
-            return
-        }
-
-        do {
-            try await CategoryService.shared.deleteCategory(id: categoryId, userId: userId)
-            await CategoryService.shared.fetchCategories(userId: userId)
-        } catch {
-            print("❌ 카테고리 삭제 실패: \(error)")
-        }
+        await viewModel.deleteCategory(category)
     }
 
     private func saveExpense(categoryId: String, amount: Int) async {

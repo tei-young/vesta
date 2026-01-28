@@ -91,9 +91,11 @@ struct CategoryEditSheet: View {
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("저장") {
-                        Task {
-                            await onSave(name, icon)
-                            dismiss()
+                        let savedName = name
+                        let savedIcon = icon
+                        dismiss()
+                        Task { @MainActor in
+                            await onSave(savedName, savedIcon)
                         }
                     }
                     .disabled(!isValid)
